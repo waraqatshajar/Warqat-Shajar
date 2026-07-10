@@ -1,0 +1,176 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // The one supreme account: immune to being demoted, banned, or removed
+    // by any other admin, and always has full authority over admin docs.
+    function isOwner() {
+      return isSignedIn() && request.auth.token.email == 'sgyiath@gmail.com';
+    }
+
+    function isParticipant(chatData) {
+      return isSignedIn() && request.auth.uid in chatData.participantIds;
+    }
+
+    // A suspended or banned user keeps read access but cannot create new
+    // content (listings, requests, messages, reviews, reports).
+    function isActiveUser() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('status', 'active') == 'active';
+    }
+
+    // Fields a normal user must never be able to set on themselves directly
+    // (trust/role/moderation state — only admins or trusted server flows may change these).
+    function userProtectedFields() {
+      return ['status', 'suspendedUntil', 'ratingAverage', 'ratingCount', 'accountType', 'uid', 'createdAt'];
+    }
+
+    // One-time bootstrap: only this exact account may grant itself admin.
+    // Once created, only existing admins can modify the admins list.
+    // Any admin may promote/revoke other admins, but only the owner may
+    // touch the owner's own admin doc — no one else can ever demote them.
+    match /admins/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() &&
+        ((request.auth.uid == uid && request.auth.token.email == 'sgyiath@gmail.com') ||
+         isAdmin());
+      allow update: if isOwner() ||
+        (isAdmin() && resource.data.email != 'sgyiath@gmail.com');
+      allow delete: if isOwner() ||
+        (isAdmin() && resource.data.email != 'sgyiath@gmail.com');
+    }
+
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isOwner() ||
+        (isAdmin() && resource.data.email != 'sgyiath@gmail.com') || (
+        isSignedIn() && request.auth.uid == uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(userProtectedFields())
+      );
+      allow delete: if isOwner() ||
+        (isAdmin() && resource.data.email != 'sgyiath@gmail.com');
+    }
+
+    match /ads/{adId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isActiveUser() && request.resource.data.ownerId == request.auth.uid &&
+        request.resource.data.viewsCount == 0 &&
+        request.resource.data.offersCount == 0 &&
+        request.resource.data.dealsCount == 0;
+
+      // Owner/admin may edit listing content but not directly rewrite the
+      // trust/ranking counters (viewsCount, offersCount, dealsCount).
+      allow update: if isAdmin() || (
+        isSignedIn() && resource.data.ownerId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['viewsCount', 'offersCount', 'dealsCount', 'ownerId'])
+      ) || (
+        // Public view counter: anyone may bump it by exactly 1, nothing else.
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewsCount']) &&
+        request.resource.data.viewsCount == resource.data.viewsCount + 1
+      ) || (
+        // Deals counter: only a signed-in user may bump it by exactly 1.
+        isSignedIn() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dealsCount']) &&
+        request.resource.data.dealsCount == resource.data.dealsCount + 1
+      ) || (
+        // Offers counter: only a signed-in user may bump it by exactly 1.
+        isSignedIn() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['offersCount']) &&
+        request.resource.data.offersCount == resource.data.offersCount + 1
+      );
+
+      allow delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /sourcingRequests/{requestId} {
+      allow read: if true;
+      allow create: if isActiveUser() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() &&
+        (resource.data.ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /chats/{chatId} {
+      allow read: if isParticipant(resource.data) || isAdmin();
+      // Participants may only bump the last-message preview when sending a
+      // message, never rewrite participants, phones, or context.
+      allow update: if isAdmin() || (
+        isParticipant(resource.data) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'lastMessageAt'])
+      );
+      allow create: if isActiveUser() && request.auth.uid in request.resource.data.participantIds;
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isParticipant(get(/databases/$(database)/documents/chats/$(chatId)).data) || isAdmin();
+        allow create: if isActiveUser() &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds &&
+          request.resource.data.senderId == request.auth.uid;
+        allow update: if isAdmin() || (
+          isSignedIn() &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds &&
+          resource.data.type == 'offer' &&
+          resource.data.senderId != request.auth.uid &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['offer']) &&
+          request.resource.data.offer.status in ['accepted', 'declined', 'countered']
+        );
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isActiveUser() &&
+        request.resource.data.fromUid == request.auth.uid &&
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(request.resource.data.chatId)).data.participantIds &&
+        request.resource.data.toUid in get(/databases/$(database)/documents/chats/$(request.resource.data.chatId)).data.participantIds;
+      allow update, delete: if isAdmin();
+    }
+
+    match /reports/{reportId} {
+      allow read: if isSignedIn() &&
+        (resource.data.reporterUid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.reporterUid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /favorites/{favId} {
+      allow read: if isSignedIn() &&
+        (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /productComments/{commentId} {
+      allow read: if true;
+      allow create: if isActiveUser() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isSignedIn() &&
+        (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,240 @@
+import { initLayout } from "../layout.js";
+import { guardAdmin } from "../admin-shell.js";
+import { t, onLocaleChange } from "../i18n.js";
+import { SiteSettings } from "../firebase.js";
+import { CATEGORIES, CATEGORY_IMAGES } from "../constants.js";
+import { btnClass, icon, renderImageInput } from "../ui.js";
+
+let contentEl;
+let siteImages = { heroImages: [], categoryImages: {}, logoUrl: null };
+let siteContent = { ar: {}, en: {} };
+let siteTheme = { primaryColor: null };
+let socialLinks = { links: [] };
+
+const CONTENT_FIELDS = [
+  { key: "heroBadge", labelKey: "branding.fieldHeroBadge", fallback: "Hero badge text" },
+  { key: "heroHeadline", labelKey: "branding.fieldHeroHeadline", fallback: "Hero headline" },
+  { key: "heroSubheadline", labelKey: "branding.fieldHeroSubheadline", fallback: "Hero subheadline" },
+  { key: "ctaTitle", labelKey: "branding.fieldCtaTitle", fallback: "Farmer CTA title" },
+  { key: "ctaSubtitle", labelKey: "branding.fieldCtaSubtitle", fallback: "Farmer CTA subtitle" },
+];
+
+const SOCIAL_PLATFORMS = ["facebook", "instagram", "x", "whatsapp", "tiktok", "youtube", "other"];
+
+let heroInput;
+let logoInput;
+let categoryInputs = {};
+
+function render() {
+  contentEl.innerHTML = `
+    <h1 class="heading" style="font-size:1.5rem">${t("branding.title")}</h1>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:1.5rem">${t("branding.logoTitle", "Logo")}</h2>
+    <div class="card" style="padding:1.5rem;margin-top:0.75rem">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem">
+        <img src="${siteImages.logoUrl || "images/logo-icon.png"}" alt="" style="width:3rem;height:3rem;object-fit:contain">
+      </div>
+      <div id="logo-input-mount"></div>
+      <button type="button" class="${btnClass("default", "sm")}" id="save-logo-btn" style="margin-top:0.75rem">${t("branding.saveChanges", "Save")}</button>
+    </div>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.colorTitle", "Brand Color")}</h2>
+    <div class="card" style="padding:1.5rem;margin-top:0.75rem;display:flex;align-items:center;gap:1rem">
+      <input type="color" id="brand-color-input" value="${siteTheme.primaryColor || "#2e7d32"}" style="width:3rem;height:2.5rem;border:none;border-radius:var(--radius-md);cursor:pointer">
+      <button type="button" class="${btnClass("default", "sm")}" id="save-color-btn">${t("branding.saveChanges", "Save")}</button>
+      <span id="color-saved" class="success-text" style="display:none">${t("branding.saved")}</span>
+    </div>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.contentTitle", "Homepage Text")}</h2>
+    <form id="content-form" class="form-stack card" style="padding:1.5rem;margin-top:0.75rem">
+      ${CONTENT_FIELDS.map(
+        (f) => `
+        <div class="field">
+          <label class="label">${t(f.labelKey, f.fallback)}</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+            <input class="input" data-content-ar="${f.key}" placeholder="${t("branding.arabicPlaceholder", "Arabic")}" value="${siteContent.ar?.[f.key] ?? ""}">
+            <input class="input force-ltr" dir="ltr" data-content-en="${f.key}" placeholder="${t("branding.englishPlaceholder", "English")}" value="${siteContent.en?.[f.key] ?? ""}">
+          </div>
+        </div>
+      `,
+      ).join("")}
+      <span id="content-saved" class="success-text" style="display:none">${t("branding.saved")}</span>
+      <button type="submit" class="${btnClass("default")}" style="align-self:flex-start">${t("branding.saveChanges", "Save")}</button>
+    </form>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.socialTitle", "Social Media")}</h2>
+    <div class="card" style="padding:1.5rem;margin-top:0.75rem">
+      <div id="social-list" style="display:flex;flex-direction:column;gap:0.5rem"></div>
+      <div style="display:grid;grid-template-columns:auto 1fr auto;gap:0.5rem;margin-top:0.75rem;align-items:center">
+        <select class="select" id="social-platform">
+          ${SOCIAL_PLATFORMS.map((p) => `<option value="${p}">${t(`branding.platform${p[0].toUpperCase()}${p.slice(1)}`, p)}</option>`).join("")}
+        </select>
+        <input class="input force-ltr" id="social-url" dir="ltr" placeholder="https://...">
+        <button type="button" class="${btnClass("outline", "sm")}" id="social-add-btn">${t("branding.socialAdd", "Add")}</button>
+      </div>
+    </div>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.heroImagesTitle")}</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:0.75rem" id="hero-image-list">
+      ${siteImages.heroImages
+        .map(
+          (url, i) => `
+        <div style="position:relative;width:8rem;height:5rem;border-radius:var(--radius-lg);overflow:hidden;background:var(--muted)">
+          <img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover">
+          <button type="button" class="btn btn-destructive btn-icon-sm" data-remove-hero="${i}" style="position:absolute;top:2px;inset-inline-end:2px;width:1.5rem;height:1.5rem;padding:0" aria-label="${t("branding.removeImage")}">${icon("x")}</button>
+        </div>
+      `,
+        )
+        .join("")}
+    </div>
+    <div id="hero-input-mount" style="margin-top:0.75rem"></div>
+    <button type="button" class="${btnClass("outline")}" id="add-hero-btn" style="margin-top:0.5rem">${t("branding.addImage")}</button>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.categoryImagesTitle")}</h2>
+    <div class="card" style="margin-top:0.75rem;padding:0 1rem">
+      ${CATEGORIES.map((c) => {
+        const current = siteImages.categoryImages[c] || CATEGORY_IMAGES[c];
+        return `
+        <div class="list-row">
+          <img src="${current}" alt="" style="width:3.5rem;height:3.5rem;object-fit:cover;border-radius:var(--radius-lg);flex-shrink:0">
+          <div class="list-row-main">
+            <div style="font-weight:600">${t(`categories.${c}`)}</div>
+            <div data-category-input-mount="${c}" style="margin-top:0.375rem;max-width:24rem"></div>
+          </div>
+          <button type="button" class="${btnClass("outline", "sm")}" data-replace-category="${c}">${t("branding.replaceImage")}</button>
+        </div>
+      `;
+      }).join("")}
+    </div>
+  `;
+
+  // Logo
+  logoInput = renderImageInput(contentEl.querySelector("#logo-input-mount"), {
+    value: siteImages.logoUrl || "",
+    uploadPathPrefix: "site/",
+    accept: "image/*",
+  });
+  contentEl.querySelector("#save-logo-btn").addEventListener("click", async () => {
+    await SiteSettings.updateLogoUrl(logoInput.getValue());
+  });
+
+  // Brand color
+  contentEl.querySelector("#save-color-btn").addEventListener("click", async () => {
+    const color = contentEl.querySelector("#brand-color-input").value;
+    await SiteSettings.updateSiteTheme(color);
+    const saved = contentEl.querySelector("#color-saved");
+    saved.style.display = "inline";
+    setTimeout(() => (saved.style.display = "none"), 2500);
+  });
+
+  // Homepage text
+  contentEl.querySelector("#content-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const arPatch = {};
+    const enPatch = {};
+    CONTENT_FIELDS.forEach((f) => {
+      arPatch[f.key] = contentEl.querySelector(`[data-content-ar="${f.key}"]`).value.trim();
+      enPatch[f.key] = contentEl.querySelector(`[data-content-en="${f.key}"]`).value.trim();
+    });
+    await SiteSettings.updateSiteContent("ar", arPatch);
+    await SiteSettings.updateSiteContent("en", enPatch);
+    const saved = contentEl.querySelector("#content-saved");
+    saved.style.display = "inline";
+    setTimeout(() => (saved.style.display = "none"), 2500);
+  });
+
+  // Social links
+  const socialListEl = contentEl.querySelector("#social-list");
+  const links = socialLinks.links || [];
+  socialListEl.innerHTML =
+    links.length === 0
+      ? `<p class="empty-state">${t("branding.noSocialLinks", "No social links yet")}</p>`
+      : links
+          .map(
+            (l, i) => `
+        <div class="list-row">
+          <span class="btn btn-ghost btn-icon" style="pointer-events:none">${icon(l.platform === "x" ? "x" : l.platform === "other" ? "link" : l.platform)}</span>
+          <div class="list-row-main">
+            <div style="font-weight:600">${t(`branding.platform${l.platform[0].toUpperCase()}${l.platform.slice(1)}`, l.platform)}</div>
+            <div class="text-muted force-ltr" style="font-size:0.8rem;display:block">${l.url}</div>
+          </div>
+          <button type="button" class="${btnClass("destructive", "icon-sm")}" data-remove-social="${i}">${icon("trash")}</button>
+        </div>
+      `,
+          )
+          .join("");
+
+  socialListEl.querySelectorAll("[data-remove-social]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const next = links.filter((_, i) => i !== Number(btn.dataset.removeSocial));
+      await SiteSettings.updateSocialLinks(next);
+    });
+  });
+
+  contentEl.querySelector("#social-add-btn").addEventListener("click", async () => {
+    const platform = contentEl.querySelector("#social-platform").value;
+    const url = contentEl.querySelector("#social-url").value.trim();
+    if (!url) return;
+    await SiteSettings.updateSocialLinks([...links, { platform, url }]);
+  });
+
+  // Hero images
+  heroInput = renderImageInput(contentEl.querySelector("#hero-input-mount"), {
+    uploadPathPrefix: "site/",
+    accept: "image/*",
+  });
+  contentEl.querySelectorAll("[data-remove-hero]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const next = siteImages.heroImages.filter((_, i) => i !== Number(btn.dataset.removeHero));
+      await SiteSettings.updateHeroImages(next);
+    });
+  });
+  contentEl.querySelector("#add-hero-btn").addEventListener("click", async () => {
+    const url = heroInput.getValue();
+    if (!url) return;
+    await SiteSettings.updateHeroImages([...siteImages.heroImages, url]);
+    heroInput.setValue("");
+  });
+
+  // Category images
+  categoryInputs = {};
+  CATEGORIES.forEach((c) => {
+    categoryInputs[c] = renderImageInput(contentEl.querySelector(`[data-category-input-mount="${c}"]`), {
+      uploadPathPrefix: "site/",
+      accept: "image/*",
+    });
+  });
+  contentEl.querySelectorAll("[data-replace-category]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const cat = btn.dataset.replaceCategory;
+      const url = categoryInputs[cat].getValue();
+      if (!url) return;
+      await SiteSettings.updateCategoryImage(cat, url);
+      categoryInputs[cat].setValue("");
+    });
+  });
+}
+
+async function main() {
+  await initLayout();
+  await guardAdmin("admin-branding.html");
+  contentEl = document.getElementById("admin-content");
+
+  siteContent = await SiteSettings.getSiteContentOnce().catch(() => siteContent);
+
+  SiteSettings.subscribeSiteImages((images) => {
+    siteImages = images;
+    render();
+  });
+  SiteSettings.subscribeSiteTheme((theme) => {
+    siteTheme = theme;
+    render();
+  });
+  SiteSettings.subscribeSocialLinks((data) => {
+    socialLinks = data;
+    render();
+  });
+  onLocaleChange(render);
+}
+
+main();

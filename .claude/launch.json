@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "waraqat-shajar-nextjs",
+      "runtimeExecutable": "npm.cmd",
+      "runtimeArgs": [
+        "--prefix",
+        "C:\\Users\\sgyia\\OneDrive\\Desktop\\A_leaf\\Waraqat Shajar",
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "waraqat-shajar-vanilla",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5500"],
+      "port": 5500
+    }
+  ]
+}

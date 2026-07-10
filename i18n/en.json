@@ -1,0 +1,468 @@
+{
+  "brand": {
+    "name": "Waraqat Shajar",
+    "tagline": "Egypt's Agricultural Marketplace"
+  },
+  "roles": {
+    "farmer": "Farmer",
+    "trader": "Trader",
+    "factory": "Factory",
+    "consumer": "Consumer"
+  },
+  "nav": {
+    "home": "Home",
+    "vegetables": "Vegetables",
+    "fruits": "Fruits",
+    "grains": "Grains",
+    "organic": "Organic"
+  },
+  "header": {
+    "searchPlaceholder": "Search products, farmers, governorates...",
+    "cart": "Cart",
+    "wishlist": "Wishlist",
+    "login": "Login",
+    "createAccount": "Create Account"
+  },
+  "hero": {
+    "badge": "Egypt's Agricultural Marketplace",
+    "headline": "Fair-Price Selling Starts Here",
+    "subheadline": "Waraqat Shajar connects farmers directly with traders, factories, and consumers — real negotiation, fair prices, no middleman eating your margin.",
+    "registerFarmer": "Register as a Farmer",
+    "cta": "Shop Now",
+    "registerAs": "Register as:",
+    "stats": {
+      "farmers": "Registered Farmers",
+      "products": "Active Products",
+      "deals": "Successful Deals"
+    }
+  },
+  "trust": {
+    "support": { "title": "24/7 Support", "subtitle": "Our support team is always available" },
+    "ratings": { "title": "Real Ratings", "subtitle": "Two-way reviews between both parties" },
+    "negotiation": { "title": "Transparent Negotiation", "subtitle": "Formal offers built into the chat" },
+    "communication": { "title": "Direct Communication", "subtitle": "Talk to the farmer directly, no middleman" }
+  },
+  "categories": {
+    "title": "Shop by Category",
+    "subtitle": "Egypt's finest crops — straight from the farm",
+    "viewAll": "View All",
+    "vegetables": "Vegetables",
+    "fruits": "Fruits",
+    "wheat": "Wheat",
+    "cotton": "Cotton",
+    "barley": "Barley",
+    "rice": "Rice",
+    "organic": "Organic Products",
+    "shopNow": "Shop Now"
+  },
+  "featured": {
+    "title": "Featured Offers",
+    "subtitle": "The latest products available now",
+    "viewAll": "View All",
+    "perKg": "EGP/kg",
+    "available": "available",
+    "negotiateNow": "Negotiate Now",
+    "comingSoon": "Direct chat & negotiation coming soon"
+  },
+  "ad": {
+    "label": "Advertisement"
+  },
+  "farmerCta": {
+    "title": "Are You a Farmer? List Your Crops Now",
+    "subtitle": "Create your product listing for free in minutes and start receiving real offers from traders and factories across Egypt.",
+    "register": "Register as a Farmer",
+    "learnMore": "Learn More"
+  },
+  "footer": {
+    "accountTypes": "Account Types",
+    "links": "Links",
+    "farmer": "Farmer",
+    "trader": "Trader",
+    "factory": "Factory",
+    "consumer": "Consumer",
+    "about": "About the Platform",
+    "terms": "Terms of Use",
+    "privacy": "Privacy Policy",
+    "contact": "Contact Us",
+    "help": "Help Center",
+    "tagline": "Egypt's agricultural marketplace — protecting farmers' right to a fair price",
+    "madeIn": "Made with care in Egypt",
+    "rights": "All rights reserved."
+  },
+  "language": {
+    "switchTo": "العربية"
+  },
+  "userMenu": {
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "adminMode": "Admin Mode",
+    "logout": "Log Out"
+  },
+  "auth": {
+    "orDivider": "or",
+    "googleButton": "Continue with Google",
+    "login": {
+      "title": "Login",
+      "subtitle": "Welcome back to Waraqat Shajar",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Login",
+      "noAccount": "Don't have an account?",
+      "createOne": "Create one",
+      "forgotPassword": "Forgot password?",
+      "resetSent": "A password reset link has been sent to your email"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join Waraqat Shajar and start selling or buying directly",
+      "accountTypeLabel": "Account Type",
+      "fullNameLabel": "Full Name",
+      "phoneLabel": "Phone Number",
+      "phoneHint": "Your phone number will be shown on your public profile for direct contact",
+      "governorateLabel": "Governorate",
+      "governoratePlaceholder": "Select governorate",
+      "cropsLabel": "Crops you currently have available",
+      "sourcingLabel": "Products you're looking to source",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "termsPrefix": "I agree to the",
+      "termsLink": "Terms & Conditions and Usage Policy",
+      "submit": "Create Account",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Login"
+    },
+    "completeProfile": {
+      "title": "Complete Your Profile",
+      "subtitle": "Just a few more details before you start using Waraqat Shajar",
+      "submit": "Save and Continue"
+    },
+    "errors": {
+      "generic": "Something went wrong, please try again",
+      "invalidEmail": "This email address is invalid",
+      "weakPassword": "Password must be at least 6 characters",
+      "emailInUse": "This email is already in use",
+      "wrongCredentials": "Incorrect email or password",
+      "passwordMismatch": "Passwords do not match",
+      "termsRequired": "You must agree to the Terms & Conditions to continue",
+      "accountTypeRequired": "Please select an account type"
+    }
+  },
+  "terms": {
+    "title": "Terms & Conditions and Usage Policy",
+    "lastUpdated": "Last updated: July 2026",
+    "intro": "These terms govern your use of the \"Waraqat Shajar\" platform. By creating an account, you agree to be bound by them.",
+    "sections": [
+      {
+        "heading": "1. Nature of the Platform",
+        "body": "Waraqat Shajar is a digital platform that connects farmers with traders, factories, and consumers to facilitate communication and negotiation for buying and selling agricultural products. The platform does not buy or sell any product itself, and is not a party to any deal made between users."
+      },
+      {
+        "heading": "2. Payment and Delivery",
+        "body": "All payment and delivery arrangements happen directly between the buyer and seller, entirely off-platform. Waraqat Shajar does not collect funds or arrange shipping, and is not responsible for any financial dispute, delay, or damage arising from these arrangements."
+      },
+      {
+        "heading": "3. Data Accuracy and Responsibility",
+        "body": "The platform currently does not verify identity, farm ownership, or business registration. Each user is fully responsible for the accuracy of the information they provide, including self-declared product quality ratings, crop descriptions, and quantities."
+      },
+      {
+        "heading": "4. Phone Number Visibility",
+        "body": "When you create an account, your phone number is displayed publicly on your profile to facilitate direct contact with other users via call or in-platform chat."
+      },
+      {
+        "heading": "5. User Conduct",
+        "body": "Using the platform to post misleading, abusive, or fraudulent content is prohibited. The platform administration may remove any listing or content that violates these terms without prior notice."
+      },
+      {
+        "heading": "6. Ratings and Reports",
+        "body": "After each interaction, both parties may rate each other. Any user may also file a report against another user (e.g. quality mismatch, non-payment, abusive behavior). The platform administration manually reviews every report and decides on the appropriate action, which may include a temporary or permanent account suspension."
+      },
+      {
+        "heading": "7. Limitation of Liability",
+        "body": "The platform is provided \"as is\" without any warranties. Waraqat Shajar is not responsible for product quality, pricing accuracy, or the outcome of any negotiation or deal between users."
+      },
+      {
+        "heading": "8. Changes to These Terms",
+        "body": "These terms may be updated from time to time. Continued use of the platform after any change constitutes acceptance of the updated terms."
+      },
+      {
+        "heading": "9. Contact",
+        "body": "For any questions about these terms, please reach out via the \"Contact Us\" page."
+      }
+    ]
+  },
+  "dashboardNav": {
+    "overview": "Overview",
+    "myProducts": "My Products",
+    "incomingOrders": "Incoming Orders",
+    "sourcingRequests": "Sourcing Requests",
+    "messages": "Messages",
+    "profile": "Profile"
+  },
+  "tour": {
+    "next": "Next",
+    "skip": "Skip",
+    "done": "Got it"
+  },
+  "orders": {
+    "title": "Incoming Orders",
+    "subtitle": "Every purchase offer you've received on your products, in one place",
+    "empty": "No orders yet",
+    "quantity": "Quantity",
+    "buyerType": "Buyer Type",
+    "contact": "Contact",
+    "delivery": "Delivery Notes",
+    "openChat": "Open Chat",
+    "tourList": "Every purchase offer on your products lands here, newest first.",
+    "tourActions": "Tap Accept if you like the offer, or Decline if not. You can also message the buyer directly via Open Chat."
+  },
+  "dashboardOverview": {
+    "welcome": "Welcome",
+    "totalViews": "Product Views",
+    "totalOffers": "Offers Received",
+    "totalProducts": "Active Products",
+    "matchingSourcing": "Sourcing Requests That May Interest You",
+    "tourStats": "A quick glance: how many people viewed your products, how many offers came in, and how many products are live right now.",
+    "tourMatches": "These are buyer requests that match your crops — reach out to them directly from here."
+  },
+  "products": {
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "categoryLabel": "Category",
+    "priceLabel": "Price",
+    "unitLabel": "Unit",
+    "unitKg": "kg",
+    "unitTon": "ton",
+    "qualityLabel": "Quality Rating (self-declared)",
+    "descriptionLabel": "Description",
+    "quantityLabel": "Available Quantity",
+    "minOrderLabel": "Minimum Order Quantity",
+    "harvestDateLabel": "Harvest Start Date",
+    "governorateLabel": "Governorate",
+    "photosLabel": "Photos (up to 3)",
+    "photosHint": "Paste a link to an already-uploaded photo (e.g. from imgur.com or Google Photos)",
+    "addUrl": "Add Link",
+    "videoLabel": "Video Link (optional)",
+    "videoHint": "Paste a direct video link (e.g. an mp4 file)",
+    "statusActive": "Active",
+    "statusPaused": "Paused",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "pause": "Pause",
+    "activate": "Activate",
+    "confirmDelete": "Are you sure you want to delete this product?",
+    "noProducts": "You don't have any products yet",
+    "viewsLabel": "views",
+    "offersLabel": "offers",
+    "uploading": "Saving...",
+    "required": "This field is required",
+    "uploadFailed": "Failed to save product, please try again",
+    "tourAdd": "Tap here to list a new product for sale — just a photo, price, and quantity.",
+    "tourCard": "Each of your products gets a card here: photo, price, and how many views or offers it got — pause or delete it anytime."
+  },
+  "sourcing": {
+    "title": "Sourcing Requests",
+    "subtitle": "Requests from traders and factories looking for crops",
+    "addRequest": "Post a Sourcing Request",
+    "categoryLabel": "Requested Category",
+    "quantityLabel": "Required Quantity",
+    "priceMinLabel": "Min Price (optional)",
+    "priceMaxLabel": "Max Price (optional)",
+    "governoratesLabel": "Target Governorates",
+    "notesLabel": "Delivery Notes",
+    "save": "Post Request",
+    "delete": "Delete",
+    "close": "Close Request",
+    "noRequests": "No sourcing requests right now",
+    "postedBy": "Posted by",
+    "respond": "Contact About This Request",
+    "statusOpen": "Open",
+    "statusClosed": "Closed"
+  },
+  "chat": {
+    "title": "Chat",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "makeOffer": "Send Offer",
+    "offerQuantity": "Quantity",
+    "offerPrice": "Price per unit",
+    "offerTotal": "Total",
+    "sendOffer": "Send Offer",
+    "counterOffer": "Counter Offer",
+    "acceptOffer": "Accept Offer",
+    "declineOffer": "Decline",
+    "offerStatusPending": "Awaiting response",
+    "offerStatusAccepted": "Accepted",
+    "offerStatusDeclined": "Declined",
+    "offerStatusCountered": "Countered",
+    "call": "Call",
+    "noMessages": "Start the conversation now",
+    "noChats": "No conversations yet",
+    "startChat": "Contact Now",
+    "conversations": "Conversations"
+  },
+  "reviews": {
+    "title": "Reviews",
+    "rateUser": "Rate this interaction",
+    "ratingLabel": "Rating",
+    "commentLabel": "Comment (optional)",
+    "submit": "Submit Review",
+    "submitted": "Thanks, your review has been submitted",
+    "reputationTitle": "Overall Rating"
+  },
+  "comments": {
+    "title": "Comments",
+    "placeholder": "Write a comment about this product...",
+    "submit": "Post Comment",
+    "noComments": "No comments yet, be the first to comment",
+    "loginToComment": "Log in to add a comment",
+    "delete": "Delete"
+  },
+  "favorites": {
+    "title": "My Saved Products",
+    "subtitle": "Products you saved to come back to later",
+    "empty": "You haven't saved any products yet",
+    "browse": "Browse Products"
+  },
+  "report": {
+    "title": "File a Report",
+    "reasonLabel": "Reason",
+    "reasonQuality": "Product doesn't match description",
+    "reasonPayment": "Non-payment",
+    "reasonAbuse": "Abusive behavior",
+    "reasonOther": "Other",
+    "detailsLabel": "Additional details",
+    "submit": "Submit Report",
+    "submitted": "Report submitted, our team will review it",
+    "reportUser": "Report this user"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "users": "Users",
+    "listings": "Listings",
+    "reports": "Reports",
+    "analytics": "Analytics",
+    "totalUsers": "Total Users",
+    "totalListings": "Active Listings",
+    "pendingReports": "Pending Reports",
+    "usersByRole": "Users by Role",
+    "suspend": "Suspend",
+    "ban": "Ban Permanently",
+    "reactivate": "Reactivate",
+    "suspendDays": "Suspension length (days)",
+    "confirmSuspend": "Suspend this account?",
+    "confirmBan": "Permanently ban this account?",
+    "statusActive": "Active",
+    "statusSuspended": "Suspended",
+    "statusBanned": "Banned",
+    "dismiss": "Dismiss Report",
+    "markActioned": "Mark Actioned",
+    "adminNotes": "Internal Notes",
+    "reportedUser": "Reported User",
+    "reporterUser": "Reporter",
+    "noReports": "No reports",
+    "noUsers": "No users",
+    "removeListing": "Remove Listing",
+    "accessDenied": "You don't have access to this page",
+    "deleteUser": "Delete Account",
+    "confirmDeleteUser": "Are you sure you want to permanently delete this account? This cannot be undone",
+    "admins": "Admins",
+    "addAdmin": "Add Admin",
+    "addAdminByEmail": "Enter a registered user's email to promote them to admin",
+    "emailPlaceholder": "example@email.com",
+    "add": "Add",
+    "revokeAdmin": "Revoke Admin Access",
+    "confirmRevokeAdmin": "Are you sure you want to revoke admin access from this user?",
+    "userNotFound": "No registered user with this email",
+    "noAdmins": "No admins",
+    "mostActiveUsers": "Most Active Users",
+    "activityScore": "Activity Score",
+    "farmerDealsRanking": "Farmer Ranking by Closed Deals",
+    "dealsCount": "Deals",
+    "noData": "Not enough data yet",
+    "ads": "Ads",
+    "branding": "Visual Identity",
+    "comments": "Comments",
+    "viewProduct": "View Product",
+    "totalComments": "Total Comments",
+    "activeAds": "Active Ads",
+    "welcomeBack": "Welcome back",
+    "fullControl": "Full control over every part of the platform",
+    "enterAdminMode": "Enter Admin Mode",
+    "enterAdminModeHint": "Enter the admin mode password to continue",
+    "adminModePassword": "Admin Mode Password",
+    "unlock": "Unlock",
+    "wrongAdminModeCode": "Incorrect password",
+    "initialAdminModePassword": "Admin Mode Password (for the new admin)",
+    "changeMyAdminModePassword": "Change your admin mode password",
+    "newAdminModePassword": "New password",
+    "saveChanges": "Save",
+    "passwordUpdated": "Password updated"
+  },
+  "ads": {
+    "title": "Ad Management",
+    "addAd": "Add Ad",
+    "imageLabel": "Ad Image",
+    "linkLabel": "Ad Link (on click)",
+    "placementLabel": "Placement",
+    "orderLabel": "Order",
+    "activeLabel": "Active",
+    "save": "Save Ad",
+    "delete": "Delete",
+    "noAds": "No ads added",
+    "placementHomeTop": "Homepage - Top",
+    "placementHomeMid": "Homepage - Middle",
+    "placementHomeBottom": "Homepage - Bottom",
+    "placementProductsTop": "Products Page - Top",
+    "placementProductDetail": "Product Detail Page",
+    "uploading": "Uploading...",
+    "placementsTitle": "Placements",
+    "placementsHint": "Fully hide a placement — no ad and no placeholder box will show there.",
+    "descHomeTop": "Homepage, right below the hero banner.",
+    "descHomeMid": "Homepage, between categories and featured listings.",
+    "descHomeBottom": "Homepage, after the farmer CTA banner, just before the footer.",
+    "descProductsTop": "Browse Products page, above the product grid.",
+    "descProductDetail": "Product detail page, below the description.",
+    "enablePlacement": "Enable",
+    "disablePlacement": "Disable"
+  },
+  "branding": {
+    "title": "Visual Identity Control",
+    "categoryImagesTitle": "Category Images",
+    "heroImagesTitle": "Hero Images (auto-rotating)",
+    "addImage": "Add Image",
+    "removeImage": "Remove Image",
+    "replaceImage": "Replace Image",
+    "uploading": "Uploading...",
+    "saved": "Saved",
+    "logoTitle": "Logo",
+    "colorTitle": "Brand Color",
+    "contentTitle": "Homepage Text",
+    "fieldHeroBadge": "Hero badge text",
+    "fieldHeroHeadline": "Hero headline",
+    "fieldHeroSubheadline": "Hero subheadline",
+    "fieldCtaTitle": "Farmer CTA title",
+    "fieldCtaSubtitle": "Farmer CTA subtitle",
+    "arabicPlaceholder": "Arabic",
+    "englishPlaceholder": "English",
+    "saveChanges": "Save",
+    "uploadFile": "Upload from device",
+    "socialTitle": "Social Media",
+    "socialAdd": "Add",
+    "noSocialLinks": "No social links yet",
+    "platformFacebook": "Facebook",
+    "platformInstagram": "Instagram",
+    "platformX": "X (Twitter)",
+    "platformWhatsapp": "WhatsApp",
+    "platformTiktok": "TikTok",
+    "platformYoutube": "YouTube",
+    "platformOther": "Other"
+  },
+  "accountStatus": {
+    "suspendedTitle": "Your account is temporarily suspended",
+    "suspendedBody": "You can't create new products, requests, or messages right now. Contact us if you think this is a mistake.",
+    "bannedTitle": "Your account is banned",
+    "bannedBody": "Your account has been permanently banned for violating the Terms & Conditions. Contact us if you'd like to appeal."
+  }
+}
