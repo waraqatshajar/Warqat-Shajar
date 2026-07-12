@@ -1,7 +1,7 @@
 import { initLayout } from "../layout.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Reviews } from "../firebase.js";
-import { governorateLabel } from "../constants.js";
+import { governorateLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { renderAvatar, renderStars, badgeClass, icon } from "../ui.js";
 import { authState, subscribe } from "../state.js";
 
@@ -63,7 +63,7 @@ async function render() {
           ? `<div>
               <div class="label">${t(profile.crops?.length ? "auth.register.cropsLabel" : "auth.register.sourcingLabel")}</div>
               <div style="display:flex;flex-wrap:wrap;gap:0.375rem;margin-top:0.25rem">
-                ${categories.map((c) => `<span class="${badgeClass("outline")}">${t(`categories.${c}`)}</span>`).join("")}
+                ${categories.map((c) => `<span class="${badgeClass("outline")}">${categoryLabelById(c, getLocale())}</span>`).join("")}
               </div>
             </div>`
           : ""
@@ -80,6 +80,7 @@ async function main() {
   await render();
   subscribe(render);
   onLocaleChange(render);
+  onCategoriesChange(render);
 }
 
 main();

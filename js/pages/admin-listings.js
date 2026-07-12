@@ -1,7 +1,8 @@
 import { initLayout } from "../layout.js";
 import { guardAdmin } from "../admin-shell.js";
-import { t, onLocaleChange } from "../i18n.js";
+import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Admin } from "../firebase.js";
+import { categoryLabelById, onCategoriesChange } from "../constants.js";
 import { btnClass, icon } from "../ui.js";
 
 let contentEl;
@@ -22,7 +23,7 @@ function render() {
                   ${p.photoUrls?.[0] ? `<img src="${p.photoUrls[0]}" alt="" style="width:100%;height:100%;object-fit:cover">` : ""}
                 </div>
                 <div class="list-row-main">
-                  <div style="font-weight:600">${t(`categories.${p.category}`)}</div>
+                  <div style="font-weight:600">${categoryLabelById(p.category, getLocale())}</div>
                   <div class="text-muted" style="font-size:0.8rem">${p.ownerName} — ${p.price} ${t("featured.perKg")}</div>
                 </div>
                 <a href="product.html?id=${p.id}" class="${btnClass("outline", "sm")}">${t("admin.viewProduct")}</a>
@@ -55,6 +56,7 @@ async function main() {
   contentEl = document.getElementById("admin-content");
   await reload();
   onLocaleChange(render);
+  onCategoriesChange(render);
 }
 
 main();

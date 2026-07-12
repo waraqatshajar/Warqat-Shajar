@@ -2,7 +2,7 @@ import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Sourcing } from "../firebase.js";
-import { governorateLabel } from "../constants.js";
+import { governorateLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { badgeClass, btnClass, icon } from "../ui.js";
 
 const listEl = document.getElementById("sourcing-list");
@@ -21,7 +21,7 @@ function render(requests) {
       <div class="list-row">
         <div class="list-row-main">
           <div style="display:flex;align-items:center;gap:0.5rem">
-            <span style="font-weight:600">${t(`categories.${r.category}`)}</span>
+            <span style="font-weight:600">${categoryLabelById(r.category, getLocale())}</span>
             <span class="${badgeClass(r.status === "open" ? "default" : "secondary")}">${t(r.status === "open" ? "sourcing.statusOpen" : "sourcing.statusClosed")}</span>
           </div>
           <div class="text-muted" style="font-size:0.875rem">${r.quantity}${r.priceMin ? ` — ${r.priceMin}-${r.priceMax ?? ""}` : ""}</div>
@@ -51,6 +51,7 @@ async function main() {
   const profile = await guardDashboard("dashboard-sourcing.html");
   Sourcing.subscribeMySourcingRequests(profile.uid, render);
   onLocaleChange(() => render(lastRequests));
+  onCategoriesChange(() => render(lastRequests));
 }
 
 main();

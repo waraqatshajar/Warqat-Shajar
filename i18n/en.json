@@ -61,7 +61,7 @@
     "viewAll": "View All",
     "perKg": "EGP/kg",
     "available": "available",
-    "negotiateNow": "Negotiate Now",
+    "negotiateNow": "Contact the Farmer",
     "comingSoon": "Direct chat & negotiation coming soon"
   },
   "ad": {
@@ -237,6 +237,10 @@
     "descriptionLabel": "Description",
     "quantityLabel": "Available Quantity",
     "minOrderLabel": "Minimum Order Quantity",
+    "calcQuantityLabel": "Choose the quantity you need",
+    "calcTotalLabel": "Total Price",
+    "currency": "EGP",
+    "orderNow": "Order Now",
     "harvestDateLabel": "Harvest Start Date",
     "governorateLabel": "Governorate",
     "photosLabel": "Photos (up to 3)",
@@ -300,7 +304,8 @@
     "noMessages": "Start the conversation now",
     "noChats": "No conversations yet",
     "startChat": "Contact Now",
-    "conversations": "Conversations"
+    "conversations": "Conversations",
+    "phoneNotAllowed": "Phone numbers aren't allowed here — please keep contact within the chat"
   },
   "reviews": {
     "title": "Reviews",
@@ -317,7 +322,8 @@
     "submit": "Post Comment",
     "noComments": "No comments yet, be the first to comment",
     "loginToComment": "Log in to add a comment",
-    "delete": "Delete"
+    "delete": "Delete",
+    "phoneNotAllowed": "Phone numbers aren't allowed in comments"
   },
   "favorites": {
     "title": "My Saved Products",
@@ -415,7 +421,11 @@
     "placementHomeMid": "Homepage - Middle",
     "placementHomeBottom": "Homepage - Bottom",
     "placementProductsTop": "Products Page - Top",
+    "placementProductsSidebar": "Products Page - Sidebar",
     "placementProductDetail": "Product Detail Page",
+    "placementProductDetailSidebar": "Product Detail Page - Sidebar",
+    "descProductsSidebar": "Browse Products page, tall skyscraper flanking the grid (desktop only).",
+    "descProductDetailSidebar": "Product detail page, tall skyscraper beside the content (desktop only).",
     "uploading": "Uploading...",
     "placementsTitle": "Placements",
     "placementsHint": "Fully hide a placement — no ad and no placeholder box will show there.",
@@ -457,7 +467,16 @@
     "platformWhatsapp": "WhatsApp",
     "platformTiktok": "TikTok",
     "platformYoutube": "YouTube",
-    "platformOther": "Other"
+    "platformOther": "Other",
+    "categoriesTitle": "Categories",
+    "categoriesHint": "Hiding a category only removes it from browsing — existing products keep their category.",
+    "hiddenLabel": "Hidden",
+    "showCategory": "Show",
+    "hideCategory": "Hide",
+    "customLabel": "Custom",
+    "deleteCategory": "Delete",
+    "addCategoryTitle": "Add a Category",
+    "confirmDeleteCategory": "Delete this category? Products already using it will keep it, but it won't be addable to new ones."
   },
   "accountStatus": {
     "suspendedTitle": "Your account is temporarily suspended",

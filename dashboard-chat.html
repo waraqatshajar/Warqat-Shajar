@@ -56,13 +56,11 @@
             <div style="display:flex;gap:0.25rem;align-items:center">
               <span id="rate-mount"></span>
               <span id="report-mount"></span>
-              <a id="chat-call-link" href="#" class="btn btn-ghost btn-icon" aria-label="Call">
-                <span data-icon="phone"></span>
-              </a>
             </div>
           </div>
           <div class="chat-messages" id="chat-messages"></div>
           <div id="offer-form-mount"></div>
+          <p id="chat-error" class="error-text" style="display:none;padding:0 0.75rem"></p>
           <div class="chat-composer">
             <button type="button" class="btn btn-outline btn-sm" id="make-offer-btn" data-i18n="chat.makeOffer">Send Offer</button>
             <input class="input" id="chat-text-input" data-i18n-placeholder="chat.typeMessage" placeholder="Type a message...">

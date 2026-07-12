@@ -1,9 +1,9 @@
 // Shared create/edit product form. Ported from src/components/dashboard.tsx
 // (ProductForm). renderProductForm() is called by both dashboard-product-new.js
 // (existingProduct = null) and dashboard-product-edit.js (existingProduct set).
-import { t, onLocaleChange, refreshTranslations } from "../i18n.js";
+import { t, getLocale, onLocaleChange, refreshTranslations } from "../i18n.js";
 import { Products } from "../firebase.js";
-import { CATEGORIES } from "../constants.js";
+import { mergeCategories, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { populateGovernorateSelect } from "./auth-shared.js";
 import { renderStarButtons, showMessage, renderImageInput } from "../ui.js";
 
@@ -28,7 +28,7 @@ export function renderProductForm(mountEl, profile, existingProduct) {
         <label class="label" data-i18n="products.governorateLabel">Governorate</label>
         <select class="select" id="pf-governorate"></select>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="grid-2">
         <div class="field">
           <label class="label" data-i18n="products.priceLabel">Price</label>
           <input class="input" id="pf-price" type="number" min="0" step="0.01" value="${existingProduct?.price ?? ""}">
@@ -46,7 +46,7 @@ export function renderProductForm(mountEl, profile, existingProduct) {
         <label class="label" data-i18n="products.descriptionLabel">Description</label>
         <textarea class="textarea" id="pf-description" rows="4">${existingProduct?.description ?? ""}</textarea>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="grid-2">
         <div class="field">
           <label class="label" data-i18n="products.quantityLabel">Available Quantity</label>
           <input class="input" id="pf-quantity" type="number" min="0" value="${existingProduct?.quantity ?? ""}">
@@ -86,7 +86,13 @@ export function renderProductForm(mountEl, profile, existingProduct) {
 
   function renderCategoryOptions() {
     const current = categorySelect.value || existingProduct?.category || "";
-    categorySelect.innerHTML = CATEGORIES.map((c) => `<option value="${c}">${t(`categories.${c}`)}</option>`).join("");
+    const ids = mergeCategories().map((c) => c.id);
+    // Keep an existing product's category selectable even if it's since been
+    // hidden from browsing — hiding must never silently change saved data.
+    if (current && !ids.includes(current)) ids.push(current);
+    categorySelect.innerHTML = ids
+      .map((id) => `<option value="${id}">${categoryLabelById(id, getLocale())}</option>`)
+      .join("");
     if (current) categorySelect.value = current;
   }
   function renderUnitOptions() {
@@ -109,6 +115,7 @@ export function renderProductForm(mountEl, profile, existingProduct) {
     renderCategoryOptions();
     renderUnitOptions();
   });
+  onCategoriesChange(renderCategoryOptions);
 
   const qualityEl = mountEl.querySelector("#pf-quality");
   qualityEl.addEventListener("click", (e) => {

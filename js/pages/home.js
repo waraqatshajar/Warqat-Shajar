@@ -1,9 +1,11 @@
 import { initLayout } from "../layout.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { SiteSettings, Products, Ads } from "../firebase.js";
-import { CATEGORIES, CATEGORY_IMAGES, governorateLabel } from "../constants.js";
+import { mergeCategories, categoryLabel, categoryLabelById, onCategoriesChange, governorateLabel } from "../constants.js";
 import { renderAdSlot, wireFavoriteButtons, productCardHTML, icon } from "../ui.js";
-import { subscribe } from "../state.js";
+import { authState, subscribe } from "../state.js";
+
+const STAT_BASE_VALUES = [24000, 8000, 10000];
 
 const TRUST_ITEMS = [
   { key: "support", icon: "headset" },
@@ -12,7 +14,7 @@ const TRUST_ITEMS = [
   { key: "communication", icon: "message-circle" },
 ];
 
-let heroImages = ["images/hero-farmer.jpg"];
+let heroImages = ["images/hero-farmer.jpg", "images/produce-flatlay.jpg"];
 let heroTimer = null;
 let activeSlide = 0;
 
@@ -58,19 +60,26 @@ function renderTrustBadges() {
   ).join("");
 }
 
-function renderCategoryGrid(categoryImages) {
+let lastCategoryImages = {};
+
+function renderCategoryGrid() {
   const el = document.getElementById("category-grid");
-  el.innerHTML = CATEGORIES.map(
-    (cat) => `
-    <a href="products.html?category=${cat}" class="category-card">
-      <img src="${categoryImages[cat] || CATEGORY_IMAGES[cat]}" alt="${t(`categories.${cat}`)}" loading="lazy">
+  const categories = mergeCategories();
+  el.innerHTML = categories
+    .map((cat) => {
+      const label = categoryLabel(cat, getLocale());
+      const image = cat.isCustom ? cat.image : lastCategoryImages[cat.id] || cat.image;
+      return `
+    <a href="products.html?category=${cat.id}" class="category-card">
+      <img src="${image}" alt="${label}" loading="lazy">
       <div class="category-card-overlay"></div>
       <div class="category-card-label">
-        <div class="category-card-name">${t(`categories.${cat}`)}</div>
+        <div class="category-card-name">${label}</div>
         <div class="category-card-hint">${t("categories.shopNow")}</div>
       </div>
-    </a>`,
-  ).join("");
+    </a>`;
+    })
+    .join("");
 }
 
 function applySiteContent(content) {
@@ -92,6 +101,36 @@ function applySiteContent(content) {
   });
 }
 
+function applyAuthAwareCTAs() {
+  const heroBtn = document.getElementById("hero-register-btn");
+  const ctaSection = document.getElementById("farmer-cta-section");
+  if (!heroBtn || !ctaSection) return;
+  if (authState.user) {
+    heroBtn.textContent = t("featured.title", "Featured Offers");
+    heroBtn.href = "products.html";
+    ctaSection.style.display = "none";
+  } else {
+    heroBtn.textContent = t("hero.registerFarmer");
+    heroBtn.href = "register.html?type=farmer";
+    ctaSection.style.display = "";
+  }
+}
+
+let statTimer = null;
+
+function animateStats() {
+  const valueEls = document.querySelectorAll(".hero-stat-value");
+  if (valueEls.length !== STAT_BASE_VALUES.length) return;
+  if (statTimer) clearInterval(statTimer);
+  statTimer = setInterval(() => {
+    valueEls.forEach((el, i) => {
+      const jitter = Math.floor(Math.random() * 40) - 20;
+      const value = STAT_BASE_VALUES[i] + jitter;
+      el.textContent = "+" + value.toLocaleString("en-US");
+    });
+  }, 4000);
+}
+
 async function renderFeaturedProducts() {
   const el = document.getElementById("featured-products");
   const products = await Products.listActiveProducts({ limitCount: 8 }).catch(() => []);
@@ -100,7 +139,7 @@ async function renderFeaturedProducts() {
     return;
   }
   el.innerHTML = `<div class="product-grid">${products
-    .map((p) => productCardHTML(p, t(`categories.${p.category}`), governorateLabel(p.governorate, getLocale()), t("featured.perKg", "EGP/kg")))
+    .map((p) => productCardHTML(p, categoryLabelById(p.category, getLocale()), governorateLabel(p.governorate, getLocale()), t("featured.perKg", "EGP/kg")))
     .join("")}</div>`;
   wireFavoriteButtons(el);
 }
@@ -108,10 +147,11 @@ async function renderFeaturedProducts() {
 async function loadSiteImages() {
   const images = await SiteSettings.getSiteImagesOnce().catch(() => ({ heroImages, categoryImages: {} }));
   heroImages = images.heroImages?.length ? images.heroImages : heroImages;
+  lastCategoryImages = images.categoryImages || {};
   activeSlide = 0;
   renderHero();
   startHeroRotation();
-  renderCategoryGrid(images.categoryImages || {});
+  renderCategoryGrid();
 }
 
 let siteContent = { ar: {}, en: {} };
@@ -127,6 +167,10 @@ async function main() {
 
   siteContent = await SiteSettings.getSiteContentOnce().catch(() => siteContent);
   applySiteContent(siteContent);
+  applyAuthAwareCTAs();
+  animateStats();
+
+  onCategoriesChange(renderCategoryGrid);
 
   onLocaleChange(() => {
     renderTrustBadges();
@@ -134,8 +178,12 @@ async function main() {
     loadSiteImages();
     renderFeaturedProducts();
     applySiteContent(siteContent);
+    applyAuthAwareCTAs();
   });
-  subscribe(() => renderFeaturedProducts());
+  subscribe(() => {
+    renderFeaturedProducts();
+    applyAuthAwareCTAs();
+  });
 }
 
 main();

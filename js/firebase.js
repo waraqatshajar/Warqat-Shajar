@@ -694,6 +694,19 @@ const socialLinksRef = doc(db, "settings", "socialLinks");
 const DEFAULT_AD_PLACEMENTS = {};
 const adPlacementsRef = doc(db, "settings", "adPlacements");
 
+const DEFAULT_CATEGORIES_CONFIG = { extra: [], hidden: [] };
+const categoriesConfigRef = doc(db, "settings", "categories");
+
+function slugify(name) {
+  return (
+    name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || `category-${Date.now()}`
+  );
+}
+
 export const SiteSettings = {
   async getSiteImagesOnce() {
     const snap = await getDoc(siteImagesRef);
@@ -768,5 +781,39 @@ export const SiteSettings = {
 
   async updateAdPlacementEnabled(placement, enabled) {
     await setDoc(adPlacementsRef, { [placement]: enabled }, { merge: true });
+  },
+
+  async getCategoriesConfigOnce() {
+    const snap = await getDoc(categoriesConfigRef);
+    return snap.exists() ? { ...DEFAULT_CATEGORIES_CONFIG, ...snap.data() } : DEFAULT_CATEGORIES_CONFIG;
+  },
+
+  subscribeCategoriesConfig(callback) {
+    return onSnapshot(
+      categoriesConfigRef,
+      (snap) => callback(snap.exists() ? { ...DEFAULT_CATEGORIES_CONFIG, ...snap.data() } : DEFAULT_CATEGORIES_CONFIG),
+      () => callback(DEFAULT_CATEGORIES_CONFIG),
+    );
+  },
+
+  async addCustomCategory({ ar, en, imageUrl }) {
+    const config = await SiteSettings.getCategoriesConfigOnce();
+    const id = slugify(en);
+    const next = [...config.extra.filter((c) => c.id !== id), { id, ar, en, imageUrl: imageUrl || null }];
+    await setDoc(categoriesConfigRef, { extra: next }, { merge: true });
+    return id;
+  },
+
+  async removeCustomCategory(id) {
+    const config = await SiteSettings.getCategoriesConfigOnce();
+    await setDoc(categoriesConfigRef, { extra: config.extra.filter((c) => c.id !== id) }, { merge: true });
+  },
+
+  async toggleCategoryHidden(id, hidden) {
+    const config = await SiteSettings.getCategoriesConfigOnce();
+    const nextHidden = hidden
+      ? [...new Set([...config.hidden, id])]
+      : config.hidden.filter((h) => h !== id);
+    await setDoc(categoriesConfigRef, { hidden: nextHidden }, { merge: true });
   },
 };

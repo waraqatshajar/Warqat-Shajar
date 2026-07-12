@@ -1,15 +1,16 @@
 import { initLayout } from "../layout.js";
 import { guardAdmin } from "../admin-shell.js";
-import { t, onLocaleChange } from "../i18n.js";
+import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { SiteSettings } from "../firebase.js";
 import { CATEGORIES, CATEGORY_IMAGES } from "../constants.js";
-import { btnClass, icon, renderImageInput } from "../ui.js";
+import { btnClass, badgeClass, icon, renderImageInput, showMessage } from "../ui.js";
 
 let contentEl;
 let siteImages = { heroImages: [], categoryImages: {}, logoUrl: null };
 let siteContent = { ar: {}, en: {} };
 let siteTheme = { primaryColor: null };
 let socialLinks = { links: [] };
+let categoriesConfig = { extra: [], hidden: [] };
 
 const CONTENT_FIELDS = [
   { key: "heroBadge", labelKey: "branding.fieldHeroBadge", fallback: "Hero badge text" },
@@ -51,7 +52,7 @@ function render() {
         (f) => `
         <div class="field">
           <label class="label">${t(f.labelKey, f.fallback)}</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <div class="grid-2" style="gap:0.5rem">
             <input class="input" data-content-ar="${f.key}" placeholder="${t("branding.arabicPlaceholder", "Arabic")}" value="${siteContent.ar?.[f.key] ?? ""}">
             <input class="input force-ltr" dir="ltr" data-content-en="${f.key}" placeholder="${t("branding.englishPlaceholder", "English")}" value="${siteContent.en?.[f.key] ?? ""}">
           </div>
@@ -90,22 +91,58 @@ function render() {
     <div id="hero-input-mount" style="margin-top:0.75rem"></div>
     <button type="button" class="${btnClass("outline")}" id="add-hero-btn" style="margin-top:0.5rem">${t("branding.addImage")}</button>
 
-    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.categoryImagesTitle")}</h2>
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.categoriesTitle", "Categories")}</h2>
+    <p class="text-muted" style="font-size:0.8rem">${t("branding.categoriesHint", "Hiding a category only removes it from browsing — existing products keep their category.")}</p>
     <div class="card" style="margin-top:0.75rem;padding:0 1rem">
       ${CATEGORIES.map((c) => {
+        const isHidden = (categoriesConfig.hidden || []).includes(c);
         const current = siteImages.categoryImages[c] || CATEGORY_IMAGES[c];
         return `
         <div class="list-row">
           <img src="${current}" alt="" style="width:3.5rem;height:3.5rem;object-fit:cover;border-radius:var(--radius-lg);flex-shrink:0">
           <div class="list-row-main">
-            <div style="font-weight:600">${t(`categories.${c}`)}</div>
+            <div style="display:flex;align-items:center;gap:0.4rem">
+              <span style="font-weight:600">${t(`categories.${c}`)}</span>
+              ${isHidden ? `<span class="${badgeClass("secondary")}">${t("branding.hiddenLabel", "Hidden")}</span>` : ""}
+            </div>
             <div data-category-input-mount="${c}" style="margin-top:0.375rem;max-width:24rem"></div>
           </div>
           <button type="button" class="${btnClass("outline", "sm")}" data-replace-category="${c}">${t("branding.replaceImage")}</button>
+          <button type="button" class="${btnClass("outline", "sm")}" data-toggle-category-hidden="${c}" data-hidden="${isHidden}">${isHidden ? t("branding.showCategory", "Show") : t("branding.hideCategory", "Hide")}</button>
         </div>
       `;
       }).join("")}
+      ${(categoriesConfig.extra || [])
+        .map((c) => {
+          const isHidden = (categoriesConfig.hidden || []).includes(c.id);
+          return `
+        <div class="list-row">
+          <img src="${c.imageUrl || ""}" alt="" style="width:3.5rem;height:3.5rem;object-fit:cover;border-radius:var(--radius-lg);flex-shrink:0;background:var(--muted)">
+          <div class="list-row-main">
+            <div style="display:flex;align-items:center;gap:0.4rem">
+              <span style="font-weight:600">${c[getLocale()] || c.en}</span>
+              <span class="${badgeClass("outline")}">${t("branding.customLabel", "Custom")}</span>
+              ${isHidden ? `<span class="${badgeClass("secondary")}">${t("branding.hiddenLabel", "Hidden")}</span>` : ""}
+            </div>
+          </div>
+          <button type="button" class="${btnClass("outline", "sm")}" data-toggle-category-hidden="${c.id}" data-hidden="${isHidden}">${isHidden ? t("branding.showCategory", "Show") : t("branding.hideCategory", "Hide")}</button>
+          <button type="button" class="${btnClass("destructive", "icon-sm")}" data-delete-category="${c.id}" aria-label="${t("branding.deleteCategory", "Delete")}">${icon("trash")}</button>
+        </div>
+      `;
+        })
+        .join("")}
     </div>
+
+    <h3 class="heading" style="font-size:1rem;margin-top:1.5rem">${t("branding.addCategoryTitle", "Add a Category")}</h3>
+    <form id="add-category-form" class="form-stack card" style="padding:1.5rem;margin-top:0.75rem">
+      <div class="grid-2" style="gap:0.5rem">
+        <input class="input" id="new-category-ar" placeholder="${t("branding.arabicPlaceholder", "Arabic")}">
+        <input class="input force-ltr" dir="ltr" id="new-category-en" placeholder="${t("branding.englishPlaceholder", "English")}">
+      </div>
+      <div id="new-category-image-mount"></div>
+      <p id="add-category-error" class="error-text" style="display:none"></p>
+      <button type="submit" class="${btnClass("default", "sm")}" style="align-self:flex-start">${t("branding.socialAdd", "Add")}</button>
+    </form>
   `;
 
   // Logo
@@ -196,7 +233,7 @@ function render() {
     heroInput.setValue("");
   });
 
-  // Category images
+  // Category images (built-ins)
   categoryInputs = {};
   CATEGORIES.forEach((c) => {
     categoryInputs[c] = renderImageInput(contentEl.querySelector(`[data-category-input-mount="${c}"]`), {
@@ -212,6 +249,40 @@ function render() {
       await SiteSettings.updateCategoryImage(cat, url);
       categoryInputs[cat].setValue("");
     });
+  });
+
+  // Hide/show any category (built-in or custom)
+  contentEl.querySelectorAll("[data-toggle-category-hidden]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const hidden = btn.dataset.hidden === "true";
+      await SiteSettings.toggleCategoryHidden(btn.dataset.toggleCategoryHidden, !hidden);
+    });
+  });
+
+  // Delete a custom category
+  contentEl.querySelectorAll("[data-delete-category]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm(t("branding.confirmDeleteCategory", "Delete this category?"))) return;
+      await SiteSettings.removeCustomCategory(btn.dataset.deleteCategory);
+    });
+  });
+
+  // Add a custom category
+  const newCategoryImageInput = renderImageInput(contentEl.querySelector("#new-category-image-mount"), {
+    uploadPathPrefix: "site/",
+    accept: "image/*",
+  });
+  contentEl.querySelector("#add-category-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errorEl = contentEl.querySelector("#add-category-error");
+    showMessage(errorEl, "");
+    const ar = contentEl.querySelector("#new-category-ar").value.trim();
+    const en = contentEl.querySelector("#new-category-en").value.trim();
+    if (!ar || !en) {
+      showMessage(errorEl, t("products.required"));
+      return;
+    }
+    await SiteSettings.addCustomCategory({ ar, en, imageUrl: newCategoryImageInput.getValue() });
   });
 }
 
@@ -232,6 +303,10 @@ async function main() {
   });
   SiteSettings.subscribeSocialLinks((data) => {
     socialLinks = data;
+    render();
+  });
+  SiteSettings.subscribeCategoriesConfig((config) => {
+    categoriesConfig = config;
     render();
   });
   onLocaleChange(render);

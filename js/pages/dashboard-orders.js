@@ -35,10 +35,10 @@ function render() {
             <a href="product.html?id=${o.productId}" style="font-weight:600;color:var(--foreground)">${o.productLabel}</a>
             <span class="${badgeClass(o.status === "accepted" ? "default" : "outline")}">${t(STATUS_KEY[o.status] || STATUS_KEY.pending)}</span>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;margin-top:0.5rem;font-size:0.875rem" class="text-muted">
+          <div class="grid-2 text-muted" style="gap:0.5rem;margin-top:0.5rem;font-size:0.875rem">
             <div>${t("orders.quantity")}: ${o.quantity} ${o.unit}</div>
             <div>${t("orders.buyerType")}: ${o.buyerAccountType ? t(`roles.${o.buyerAccountType}`) : ""}</div>
-            <div>${t("orders.contact")}: ${o.buyerName} (<a href="tel:${o.buyerPhone}" class="force-ltr" style="display:inline-block">${o.buyerPhone}</a>)</div>
+            <div>${t("orders.contact")}: ${o.buyerName}</div>
             ${o.deliveryNotes ? `<div>${t("orders.delivery")}: ${o.deliveryNotes}</div>` : ""}
           </div>
         </div>

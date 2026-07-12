@@ -37,6 +37,18 @@ export function badgeClass(variant = "default", extra = "") {
   return ["badge", variantClass, extra].filter(Boolean).join(" ");
 }
 
+// ---------------------------------------------------------------------------
+// Phone-number detection — all direct contact is meant to stay in-app chat,
+// so free-text fields (chat messages, comments) reject anything that looks
+// like a phone number, including one typed with spaces/dashes/Arabic digits.
+// ---------------------------------------------------------------------------
+export function containsPhoneNumber(text) {
+  const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+  const normalized = text.replace(/[٠-٩]/g, (d) => String(arabicDigits.indexOf(d)));
+  const stripped = normalized.replace(/[\s\-.()]/g, "");
+  return /\d{10,}/.test(stripped);
+}
+
 export function initials(name) {
   if (!name) return "U";
   return name.trim().charAt(0).toUpperCase();
@@ -400,14 +412,21 @@ export function initProductComments(containerEl, productId) {
       formArea.innerHTML = `
         <form id="comment-form" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:1rem">
           <textarea class="textarea" id="comment-text" data-i18n-placeholder="comments.placeholder" placeholder="${t("comments.placeholder")}" rows="2"></textarea>
+          <p id="comment-error" class="error-text" style="display:none"></p>
           <button type="submit" class="${btnClass("default", "sm")}" style="align-self:flex-start">${t("comments.submit")}</button>
         </form>
       `;
       formArea.querySelector("#comment-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         const textEl = formArea.querySelector("#comment-text");
+        const errorEl = formArea.querySelector("#comment-error");
         const text = textEl.value.trim();
         if (!text || !authState.profile) return;
+        if (containsPhoneNumber(text)) {
+          showMessage(errorEl, t("comments.phoneNotAllowed"));
+          return;
+        }
+        showMessage(errorEl, "");
         await Comments.addProductComment({
           productId,
           uid: authState.user.uid,

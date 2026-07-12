@@ -2,7 +2,7 @@ import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Sourcing } from "../firebase.js";
-import { CATEGORIES, GOVERNORATES } from "../constants.js";
+import { GOVERNORATES, mergeCategories, categoryLabel, onCategoriesChange } from "../constants.js";
 import { showMessage } from "../ui.js";
 
 const categorySelect = document.getElementById("sf-category");
@@ -11,7 +11,9 @@ let selectedGovernorates = [];
 
 function renderOptions() {
   const currentCategory = categorySelect.value;
-  categorySelect.innerHTML = CATEGORIES.map((c) => `<option value="${c}">${t(`categories.${c}`)}</option>`).join("");
+  categorySelect.innerHTML = mergeCategories()
+    .map((c) => `<option value="${c.id}">${categoryLabel(c, getLocale())}</option>`)
+    .join("");
   if (currentCategory) categorySelect.value = currentCategory;
 
   govGrid.innerHTML = GOVERNORATES.map(
@@ -33,6 +35,7 @@ async function main() {
   const profile = await guardDashboard("dashboard-sourcing.html");
   renderOptions();
   onLocaleChange(renderOptions);
+  onCategoriesChange(renderOptions);
 
   const form = document.getElementById("sourcing-form");
   const errorEl = document.getElementById("sf-error");

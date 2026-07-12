@@ -1,7 +1,7 @@
 import { initLayout } from "../layout.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Products } from "../firebase.js";
-import { governorateLabel } from "../constants.js";
+import { governorateLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { wireFavoriteButtons, productCardHTML } from "../ui.js";
 import { authState, favoritesState, subscribe } from "../state.js";
 
@@ -41,7 +41,7 @@ async function render() {
   }
 
   listEl.innerHTML = `<div class="product-grid">${products
-    .map((p) => productCardHTML(p, t(`categories.${p.category}`), governorateLabel(p.governorate, getLocale()), t("featured.perKg", "EGP/kg")))
+    .map((p) => productCardHTML(p, categoryLabelById(p.category, getLocale()), governorateLabel(p.governorate, getLocale()), t("featured.perKg", "EGP/kg")))
     .join("")}</div>`;
   wireFavoriteButtons(listEl);
 }
@@ -51,6 +51,7 @@ async function main() {
   await render();
   subscribe(render);
   onLocaleChange(render);
+  onCategoriesChange(render);
 }
 
 main();

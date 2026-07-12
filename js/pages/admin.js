@@ -55,7 +55,7 @@ function render() {
       ).join("")}
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2rem" class="admin-rankings-grid">
+    <div class="grid-2 admin-rankings-grid" style="gap:1.5rem;margin-top:2rem">
       <div>
         <h2 class="heading" style="font-size:1.1rem">${t("admin.mostActiveUsers")}</h2>
         <div class="card" style="margin-top:0.75rem;padding:0 1rem">

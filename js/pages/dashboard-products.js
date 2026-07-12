@@ -1,7 +1,8 @@
 import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
-import { t, onLocaleChange } from "../i18n.js";
+import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Products } from "../firebase.js";
+import { categoryLabelById, onCategoriesChange } from "../constants.js";
 import { badgeClass, btnClass, icon } from "../ui.js";
 import { initHelpTour } from "../help-tour.js";
 
@@ -25,7 +26,7 @@ function render(products) {
         </div>
         <div class="list-row-main">
           <div style="display:flex;align-items:center;gap:0.5rem">
-            <span style="font-weight:600">${t(`categories.${p.category}`)}</span>
+            <span style="font-weight:600">${categoryLabelById(p.category, getLocale())}</span>
             <span class="${badgeClass(p.status === "active" ? "default" : "secondary")}">${t(p.status === "active" ? "products.statusActive" : "products.statusPaused")}</span>
           </div>
           <div class="text-muted" style="font-size:0.875rem">${p.quantity} ${t(p.unit === "kg" ? "products.unitKg" : "products.unitTon")} — ${p.price} ${t("featured.perKg")}</div>
@@ -69,6 +70,7 @@ async function main() {
   const profile = await guardDashboard("dashboard-products.html");
   Products.subscribeMyProducts(profile.uid, render);
   onLocaleChange(() => render(lastProducts));
+  onCategoriesChange(() => render(lastProducts));
 }
 
 main();

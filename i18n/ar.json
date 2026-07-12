@@ -61,7 +61,7 @@
     "viewAll": "عرض الكل",
     "perKg": "جنيه/كجم",
     "available": "متاح",
-    "negotiateNow": "تفاوض الآن",
+    "negotiateNow": "تواصل مع المزارع",
     "comingSoon": "المحادثة والتفاوض المباشر قريباً"
   },
   "ad": {
@@ -237,6 +237,10 @@
     "descriptionLabel": "الوصف",
     "quantityLabel": "الكمية المتاحة",
     "minOrderLabel": "الحد الأدنى للطلب",
+    "calcQuantityLabel": "حدد الكمية يلي بدك ياها",
+    "calcTotalLabel": "السعر الإجمالي",
+    "currency": "جنيه",
+    "orderNow": "اطلب الآن",
     "harvestDateLabel": "تاريخ بداية الحصاد",
     "governorateLabel": "المحافظة",
     "photosLabel": "الصور (حتى 3)",
@@ -300,7 +304,8 @@
     "noMessages": "ابدأ المحادثة الآن",
     "noChats": "ما في محادثات لسا",
     "startChat": "تواصل الآن",
-    "conversations": "المحادثات"
+    "conversations": "المحادثات",
+    "phoneNotAllowed": "ما بينسمح بكتابة أرقام هواتف هون — خلي التواصل من خلال المحادثة"
   },
   "reviews": {
     "title": "التقييمات",
@@ -317,7 +322,8 @@
     "submit": "نشر التعليق",
     "noComments": "لا توجد تعليقات بعد، كن أول من يعلّق",
     "loginToComment": "سجّل الدخول لتضيف تعليق",
-    "delete": "حذف"
+    "delete": "حذف",
+    "phoneNotAllowed": "ما بينسمح بكتابة أرقام هواتف بالتعليقات"
   },
   "favorites": {
     "title": "منتجاتي المحفوظة",
@@ -415,7 +421,11 @@
     "placementHomeMid": "الرئيسية - وسط",
     "placementHomeBottom": "الرئيسية - أسفل",
     "placementProductsTop": "صفحة المنتجات - أعلى",
+    "placementProductsSidebar": "صفحة المنتجات - جانبي",
     "placementProductDetail": "صفحة تفاصيل المنتج",
+    "placementProductDetailSidebar": "صفحة تفاصيل المنتج - جانبي",
+    "descProductsSidebar": "صفحة تصفح المنتجات، إعلان طويل عمودي بجانب الشبكة (على الشاشات الكبيرة بس).",
+    "descProductDetailSidebar": "صفحة تفاصيل المنتج، إعلان طويل عمودي بجانب المحتوى (على الشاشات الكبيرة بس).",
     "uploading": "جاري الرفع...",
     "placementsTitle": "أماكن الإعلانات",
     "placementsHint": "تعطيل المكان بالكامل — ما رح يظهر أي إعلان ولا حتى صندوق فارغ فيه.",
@@ -457,7 +467,16 @@
     "platformWhatsapp": "واتساب",
     "platformTiktok": "تيك توك",
     "platformYoutube": "يوتيوب",
-    "platformOther": "أخرى"
+    "platformOther": "أخرى",
+    "categoriesTitle": "الأصناف",
+    "categoriesHint": "تعطيل الصنف بيشيلو بس من التصفح — المنتجات يلي موجودة فيه لسا بتضل فيه.",
+    "hiddenLabel": "معطّل",
+    "showCategory": "تفعيل",
+    "hideCategory": "تعطيل",
+    "customLabel": "مخصص",
+    "deleteCategory": "حذف",
+    "addCategoryTitle": "إضافة صنف",
+    "confirmDeleteCategory": "احذف هاد الصنف؟ المنتجات يلي مستخدماه رح تضل عليه بس ما رح تقدر تختارو لمنتجات جديدة."
   },
   "accountStatus": {
     "suspendedTitle": "حسابك معلّق مؤقتاً",

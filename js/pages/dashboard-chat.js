@@ -3,7 +3,7 @@ import { guardDashboard } from "../dashboard-shell.js";
 import { t, onLocaleChange } from "../i18n.js";
 import { Chat, Products, Reviews } from "../firebase.js";
 import { authState } from "../state.js";
-import { btnClass, badgeClass, icon, initReportDialog, renderStarButtons, showMessage } from "../ui.js";
+import { btnClass, badgeClass, icon, initReportDialog, renderStarButtons, showMessage, containsPhoneNumber } from "../ui.js";
 
 const params = new URLSearchParams(location.search);
 const chatId = params.get("id");
@@ -34,7 +34,6 @@ function renderHeader() {
   const other = otherParticipant();
   document.getElementById("chat-other-name").textContent = other.name;
   document.getElementById("chat-context-label").textContent = chat.contextLabel;
-  document.getElementById("chat-call-link").href = `tel:${other.phone}`;
   initReportDialog(document.getElementById("report-mount"), other.uid, other.name);
   renderRateMount(other);
 }
@@ -267,9 +266,15 @@ async function main() {
 
   const textInput = document.getElementById("chat-text-input");
   const sendBtn = document.getElementById("chat-send-btn");
+  const chatErrorEl = document.getElementById("chat-error");
   async function sendText() {
     const text = textInput.value.trim();
     if (!text) return;
+    if (containsPhoneNumber(text)) {
+      showMessage(chatErrorEl, t("chat.phoneNotAllowed"));
+      return;
+    }
+    showMessage(chatErrorEl, "");
     textInput.value = "";
     await Chat.sendTextMessage(chatId, profile.uid, text);
   }

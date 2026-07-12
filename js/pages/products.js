@@ -1,7 +1,7 @@
 import { initLayout } from "../layout.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Products, Ads } from "../firebase.js";
-import { CATEGORIES, GOVERNORATES, governorateLabel } from "../constants.js";
+import { GOVERNORATES, governorateLabel, mergeCategories, categoryLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { renderAdSlot, wireFavoriteButtons, productCardHTML } from "../ui.js";
 import { subscribe } from "../state.js";
 
@@ -14,7 +14,9 @@ function populateFilters() {
   const governorate = governorateSelect.value;
   categorySelect.innerHTML =
     `<option value="">${t("categories.title", "All categories")}</option>` +
-    CATEGORIES.map((c) => `<option value="${c}">${t(`categories.${c}`)}</option>`).join("");
+    mergeCategories()
+      .map((c) => `<option value="${c.id}">${categoryLabel(c, getLocale())}</option>`)
+      .join("");
   governorateSelect.innerHTML =
     `<option value="">${t("auth.register.governorateLabel", "Governorate")}</option>` +
     GOVERNORATES.map((g) => `<option value="${g.id}">${g[getLocale()]}</option>`).join("");
@@ -35,7 +37,7 @@ async function loadProducts() {
   }
 
   listEl.innerHTML = `<div class="product-grid">${products
-    .map((p) => productCardHTML(p, t(`categories.${p.category}`), governorateLabel(p.governorate, getLocale()), t("featured.perKg", "EGP/kg")))
+    .map((p) => productCardHTML(p, categoryLabelById(p.category, getLocale()), governorateLabel(p.governorate, getLocale()), t("featured.perKg", "EGP/kg")))
     .join("")}</div>`;
   wireFavoriteButtons(listEl);
 }
@@ -46,12 +48,14 @@ async function main() {
 
   const params = new URLSearchParams(location.search);
   const initialCategory = params.get("category");
-  if (initialCategory && CATEGORIES.includes(initialCategory)) {
+  if (initialCategory && mergeCategories().some((c) => c.id === initialCategory)) {
     categorySelect.value = initialCategory;
   }
 
   await loadProducts();
   renderAdSlot(document.getElementById("ad-products-top"), "products-top", Ads);
+  renderAdSlot(document.getElementById("ad-products-sidebar-start"), "products-sidebar", Ads, 160, 600);
+  renderAdSlot(document.getElementById("ad-products-sidebar-end"), "products-sidebar", Ads, 160, 600);
 
   categorySelect.addEventListener("change", loadProducts);
   governorateSelect.addEventListener("change", loadProducts);
@@ -60,6 +64,10 @@ async function main() {
     loadProducts();
   });
   subscribe(() => loadProducts());
+  onCategoriesChange(() => {
+    populateFilters();
+    loadProducts();
+  });
 }
 
 main();

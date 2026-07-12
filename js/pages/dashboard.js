@@ -2,7 +2,7 @@ import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Products, Sourcing } from "../firebase.js";
-import { governorateLabel } from "../constants.js";
+import { governorateLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { badgeClass } from "../ui.js";
 import { initHelpTour } from "../help-tour.js";
 
@@ -60,8 +60,8 @@ async function loadMatches(profile) {
       (r) => `
       <div class="list-row">
         <div class="list-row-main">
-          <div style="font-weight:600">${t(`categories.${r.category}`)}</div>
-          <div class="text-muted" style="font-size:0.875rem">${r.quantity} — ${t("sourcing.postedBy")}: ${r.ownerName} (<a href="tel:${r.ownerPhone}" class="force-ltr" style="display:inline-block">${r.ownerPhone}</a>)</div>
+          <div style="font-weight:600">${categoryLabelById(r.category, getLocale())}</div>
+          <div class="text-muted" style="font-size:0.875rem">${r.quantity} — ${t("sourcing.postedBy")}: ${r.ownerName}</div>
           <div style="display:flex;flex-wrap:wrap;gap:0.375rem;margin-top:0.375rem">
             ${r.governorates.map((g) => `<span class="${badgeClass("outline")}">${governorateLabel(g, getLocale())}</span>`).join("")}
           </div>
@@ -90,6 +90,7 @@ async function main() {
   }
 
   onLocaleChange(() => renderOverview(profile));
+  onCategoriesChange(() => renderOverview(profile));
 }
 
 main();

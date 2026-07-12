@@ -1,6 +1,6 @@
 // Shared widgets for register.js + complete-profile.js: role selector,
 // governorate select, category checkbox grid. Ported from src/components/auth.tsx.
-import { ACCOUNT_TYPES, CATEGORIES, GOVERNORATES } from "../constants.js";
+import { ACCOUNT_TYPES, GOVERNORATES, mergeCategories, categoryLabel, onCategoriesChange } from "../constants.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 
 export function renderRoleSelector(container, value, onChange) {
@@ -34,9 +34,12 @@ export function populateGovernorateSelect(selectEl, placeholder) {
 
 export function renderCategoryCheckboxGrid(container, selected, onChange) {
   function render() {
-    container.innerHTML = CATEGORIES.map(
-      (cat) => `<label><input type="checkbox" value="${cat}" ${selected.includes(cat) ? "checked" : ""}> ${t(`categories.${cat}`)}</label>`,
-    ).join("");
+    container.innerHTML = mergeCategories()
+      .map(
+        (cat) =>
+          `<label><input type="checkbox" value="${cat.id}" ${selected.includes(cat.id) ? "checked" : ""}> ${categoryLabel(cat, getLocale())}</label>`,
+      )
+      .join("");
     container.querySelectorAll("input[type=checkbox]").forEach((cb) => {
       cb.addEventListener("change", () => {
         if (cb.checked) {
@@ -51,6 +54,7 @@ export function renderCategoryCheckboxGrid(container, selected, onChange) {
   }
   render();
   onLocaleChange(render);
+  onCategoriesChange(render);
 }
 
 export function updateCategoriesVisibility(fieldEl, labelEl, accountType) {

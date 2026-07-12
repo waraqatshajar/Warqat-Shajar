@@ -14,7 +14,9 @@ const PLACEMENT_KEY = {
   "home-mid": "ads.placementHomeMid",
   "home-bottom": "ads.placementHomeBottom",
   "products-top": "ads.placementProductsTop",
+  "products-sidebar": "ads.placementProductsSidebar",
   "product-detail": "ads.placementProductDetail",
+  "product-detail-sidebar": "ads.placementProductDetailSidebar",
 };
 
 const PLACEMENT_DESC_KEY = {
@@ -22,7 +24,9 @@ const PLACEMENT_DESC_KEY = {
   "home-mid": "ads.descHomeMid",
   "home-bottom": "ads.descHomeBottom",
   "products-top": "ads.descProductsTop",
+  "products-sidebar": "ads.descProductsSidebar",
   "product-detail": "ads.descProductDetail",
+  "product-detail-sidebar": "ads.descProductDetailSidebar",
 };
 
 const PLACEMENT_DESC_FALLBACK = {
@@ -30,7 +34,9 @@ const PLACEMENT_DESC_FALLBACK = {
   "home-mid": "Homepage, between categories and featured listings.",
   "home-bottom": "Homepage, after the farmer CTA banner, just before the footer.",
   "products-top": "Browse Products page, above the product grid.",
+  "products-sidebar": "Browse Products page, tall skyscraper flanking the grid (desktop only).",
   "product-detail": "Product detail page, below the description.",
+  "product-detail-sidebar": "Product detail page, tall skyscraper beside the content (desktop only).",
 };
 
 let photoInput;
@@ -49,7 +55,7 @@ function render() {
         <label class="label">${t("ads.linkLabel")}</label>
         <input class="input force-ltr" id="ad-link-url" dir="ltr" placeholder="https://...">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="grid-2">
         <div class="field">
           <label class="label">${t("ads.placementLabel")}</label>
           <select class="select" id="ad-placement">
