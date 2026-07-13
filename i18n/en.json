@@ -3,6 +3,54 @@
     "name": "Waraqat Shajar",
     "tagline": "Egypt's Agricultural Marketplace"
   },
+  "about": {
+    "heroBadge": "Our Story",
+    "heroHeadline": "No Middleman, A Fair Price, From the Heart of Egypt's Land",
+    "heroSubheadline": "Waraqat Shajar is a digital platform connecting Egyptian farmers directly with traders, factories, and consumers — no brokers, no hidden commissions.",
+    "missionTitle": "Why We Built Waraqat Shajar",
+    "missionBody": "For decades, Egyptian farmers received the lowest possible price for their harvest, while consumers paid many times more — with the difference absorbed by a long chain of middlemen who had no real connection to the crop. Waraqat Shajar was built to close that gap: one simple platform where a farmer can list their harvest for the whole world to see, and any trader, factory, or even end consumer can reach them directly and agree on a fair price with complete transparency — without anyone taking a cut of work they never did.",
+    "howTitle": "How the Platform Works",
+    "howSubtitle": "Four simple steps, from signing up to receiving your harvest",
+    "step1Title": "Create Your Account",
+    "step1Body": "Choose your account type — farmer, trader, factory, or consumer — and sign up in minutes.",
+    "step2Title": "List or Browse",
+    "step2Body": "Farmers list their harvest with their own price and quantity; everyone else browses the available categories.",
+    "step3Title": "Negotiate Directly",
+    "step3Body": "Direct in-app conversation, with a formal offer system that makes agreeing on price and quantity easy.",
+    "step4Title": "Agree & Deliver",
+    "step4Body": "Once you reach an agreement, complete the deal directly between yourselves, with full trust and transparency.",
+    "whyTitle": "Why Waraqat Shajar?",
+    "why1Title": "No Middleman",
+    "why1Body": "Direct contact with the farmer or trader — no broker, no hidden commissions.",
+    "why2Title": "Transparent Negotiation",
+    "why2Body": "A formal in-chat offer system protects both sides.",
+    "why3Title": "Real Ratings",
+    "why3Body": "Two-way ratings after every deal build genuine trust between users.",
+    "why4Title": "24/7 Support",
+    "why4Body": "Our support team is available around the clock for any question or issue.",
+    "ctaTitle": "Ready to Get Started?",
+    "ctaSubtitle": "Join thousands of farmers and traders buying and selling at a fair price every day.",
+    "ctaRegister": "Register as a Farmer",
+    "ctaBrowse": "Browse Products"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Have a question, complaint, or suggestion? Chat directly with our team.",
+    "loginRequired": "Please log in first to contact us.",
+    "noneAvailable": "No one from our team is available right now, please try again shortly.",
+    "startChat": "Start Chat",
+    "chatContextLabel": "Contact Us"
+  },
+  "cart": {
+    "title": "My Cart",
+    "subtitle": "Products you're considering — review, adjust quantity, and contact the farmer whenever you're ready.",
+    "loginRequired": "Please log in first to see your cart.",
+    "empty": "Your cart is empty",
+    "remove": "Remove",
+    "total": "Grand Total",
+    "addToCart": "Add to Cart",
+    "added": "Added"
+  },
   "roles": {
     "farmer": "Farmer",
     "trader": "Trader",
@@ -195,6 +243,7 @@
     "overview": "Overview",
     "myProducts": "My Products",
     "incomingOrders": "Incoming Orders",
+    "myOrders": "My Orders",
     "sourcingRequests": "Sourcing Requests",
     "messages": "Messages",
     "profile": "Profile"
@@ -215,6 +264,12 @@
     "openChat": "Open Chat",
     "tourList": "Every purchase offer on your products lands here, newest first.",
     "tourActions": "Tap Accept if you like the offer, or Decline if not. You can also message the buyer directly via Open Chat."
+  },
+  "myOrders": {
+    "title": "My Orders",
+    "subtitle": "Every offer you've sent a farmer, in one place",
+    "empty": "You haven't sent any offers yet",
+    "farmer": "Farmer"
   },
   "dashboardOverview": {
     "welcome": "Welcome",
@@ -265,6 +320,14 @@
     "tourAdd": "Tap here to list a new product for sale — just a photo, price, and quantity.",
     "tourCard": "Each of your products gets a card here: photo, price, and how many views or offers it got — pause or delete it anytime."
   },
+  "freshness": {
+    "label": "Freshness",
+    "high": "Very Fresh",
+    "medium": "Good Quality",
+    "low": "Lower Quality",
+    "harvestedOn": "Harvested on",
+    "daysAgo": "{days} days ago"
+  },
   "sourcing": {
     "title": "Sourcing Requests",
     "subtitle": "Requests from traders and factories looking for crops",
@@ -300,6 +363,9 @@
     "offerStatusAccepted": "Accepted",
     "offerStatusDeclined": "Declined",
     "offerStatusCountered": "Countered",
+    "offerStatusCancelled": "Cancelled by buyer",
+    "cancelOffer": "Cancel Order",
+    "confirmCancelOffer": "Are you sure you want to cancel this order?",
     "call": "Call",
     "noMessages": "Start the conversation now",
     "noChats": "No conversations yet",
@@ -382,6 +448,10 @@
     "confirmRevokeAdmin": "Are you sure you want to revoke admin access from this user?",
     "userNotFound": "No registered user with this email",
     "noAdmins": "No admins",
+    "acceptSupportTitle": "Accept Contact Requests",
+    "acceptSupportHint": "When enabled, your name shows up on the \"Contact Us\" page and any user can start a chat with you directly.",
+    "acceptSupportOn": "Enabled",
+    "acceptSupportOff": "Disabled",
     "mostActiveUsers": "Most Active Users",
     "activityScore": "Activity Score",
     "farmerDealsRanking": "Farmer Ranking by Closed Deals",
@@ -393,6 +463,8 @@
     "viewProduct": "View Product",
     "totalComments": "Total Comments",
     "activeAds": "Active Ads",
+    "phoneAttempts": "Phone Sharing Attempts",
+    "chats": "Chat Oversight",
     "welcomeBack": "Welcome back",
     "fullControl": "Full control over every part of the platform",
     "enterAdminMode": "Enter Admin Mode",
@@ -405,6 +477,21 @@
     "newAdminModePassword": "New password",
     "saveChanges": "Save",
     "passwordUpdated": "Password updated"
+  },
+  "phoneAttempts": {
+    "hint": "Every attempt to share a phone number in chat or comments is logged here automatically.",
+    "empty": "No attempts logged yet",
+    "contextChat": "Attempt in chat",
+    "contextComment": "Attempt in a comment",
+    "attemptedBy": "User",
+    "target": "With"
+  },
+  "chats": {
+    "title": "All Conversations",
+    "hint": "Open any conversation to review it — users are never notified that you opened it.",
+    "empty": "No conversations yet",
+    "back": "Back to all conversations",
+    "viewOnly": "View only — for internal review"
   },
   "ads": {
     "title": "Ad Management",
@@ -454,6 +541,14 @@
     "fieldHeroSubheadline": "Hero subheadline",
     "fieldCtaTitle": "Farmer CTA title",
     "fieldCtaSubtitle": "Farmer CTA subtitle",
+    "aboutContentTitle": "About Page Text",
+    "fieldAboutHeroBadge": "Badge text (About page)",
+    "fieldAboutHeroHeadline": "Headline (About page)",
+    "fieldAboutHeroSubheadline": "Subheadline (About page)",
+    "fieldAboutMissionTitle": "Mission section title",
+    "fieldAboutMissionBody": "Mission section body",
+    "fieldAboutCtaTitle": "Closing CTA title",
+    "fieldAboutCtaSubtitle": "Closing CTA text",
     "arabicPlaceholder": "Arabic",
     "englishPlaceholder": "English",
     "saveChanges": "Save",

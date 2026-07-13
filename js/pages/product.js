@@ -1,9 +1,9 @@
 import { initLayout } from "../layout.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Products, Chat, Ads } from "../firebase.js";
-import { governorateLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
+import { governorateLabel, categoryLabelById, onCategoriesChange, computeFreshness } from "../constants.js";
 import { renderAdSlot, favoriteButtonHTML, wireFavoriteButtons, initReportDialog, initProductComments, icon } from "../ui.js";
-import { authState, subscribe } from "../state.js";
+import { authState, subscribe, addToCart } from "../state.js";
 
 const params = new URLSearchParams(location.search);
 const productId = params.get("id");
@@ -11,34 +11,98 @@ const detailEl = document.getElementById("product-detail");
 
 let product = null;
 let starting = false;
+let activePhotoIndex = 0;
+
+function renderGallery() {
+  const photos = product.photoUrls || [];
+  if (photos.length === 0) {
+    return `<div style="grid-column:span 3;aspect-ratio:16/9;background:var(--muted);border-radius:var(--radius-lg)"></div>`;
+  }
+  return `
+    <div class="product-gallery-zoom-outer">
+      <div class="product-gallery-zoom" id="gallery-zoom-box">
+        <img src="${photos[activePhotoIndex]}" alt="" id="gallery-hero-img">
+        <div class="gallery-zoom-lens" id="gallery-zoom-lens"></div>
+        ${
+          photos.length > 1
+            ? `
+              <button type="button" class="gallery-nav-arrow gallery-nav-prev" id="gallery-prev" aria-label="Previous photo">${icon("chevron-down")}</button>
+              <button type="button" class="gallery-nav-arrow gallery-nav-next" id="gallery-next" aria-label="Next photo">${icon("chevron-down")}</button>
+            `
+            : ""
+        }
+      </div>
+      <div class="gallery-zoom-result" id="gallery-zoom-result"></div>
+    </div>
+    ${
+      photos.length > 1
+        ? `
+        <div class="product-gallery-thumbs">
+          ${photos
+            .map(
+              (url, i) =>
+                `<button type="button" class="product-gallery-thumb ${i === activePhotoIndex ? "is-active" : ""}" data-thumb="${i}"><img src="${url}" alt=""></button>`,
+            )
+            .join("")}
+        </div>
+      `
+        : ""
+    }
+  `;
+}
+
+function setActivePhoto(index) {
+  const photos = product.photoUrls || [];
+  const len = photos.length;
+  activePhotoIndex = ((index % len) + len) % len;
+  const img = document.getElementById("gallery-hero-img");
+  if (!img) return;
+  img.classList.add("is-fading");
+  setTimeout(() => {
+    img.src = photos[activePhotoIndex];
+    img.classList.remove("is-fading");
+  }, 180);
+  document.querySelectorAll("[data-thumb]").forEach((thumb) => {
+    thumb.classList.toggle("is-active", Number(thumb.dataset.thumb) === activePhotoIndex);
+  });
+}
+
+function wireGallery() {
+  const prevBtn = document.getElementById("gallery-prev");
+  const nextBtn = document.getElementById("gallery-next");
+  if (prevBtn) prevBtn.addEventListener("click", () => setActivePhoto(activePhotoIndex - 1));
+  if (nextBtn) nextBtn.addEventListener("click", () => setActivePhoto(activePhotoIndex + 1));
+  document.querySelectorAll("[data-thumb]").forEach((thumb) => {
+    thumb.addEventListener("click", () => setActivePhoto(Number(thumb.dataset.thumb)));
+  });
+}
+
+function renderFreshnessBadge(p) {
+  if (!p.harvestDate) return "";
+  const { pct, level, daysSince, harvestDate } = computeFreshness(p.harvestDate, p.category);
+  const dateLabel = harvestDate.toLocaleDateString(getLocale() === "ar" ? "ar-EG" : "en-US");
+  const daysLabel = t("freshness.daysAgo").replace("{days}", daysSince);
+  return `
+    <div class="freshness-card">
+      <div class="freshness-header">
+        <span class="freshness-badge freshness-${level}">${t(`freshness.${level}`)}</span>
+        <span class="text-muted" style="font-size:0.8rem">${t("freshness.harvestedOn")}: ${dateLabel} (${daysLabel})</span>
+      </div>
+      <div class="freshness-bar-track">
+        <div class="freshness-bar-fill freshness-${level}" style="width:${pct}%"></div>
+      </div>
+    </div>
+  `;
+}
 
 function render() {
   if (!product) return;
   const isOwner = authState.user?.uid === product.ownerId;
   const unitLabel = t(product.unit === "kg" ? "products.unitKg" : "products.unitTon");
-  const photos = product.photoUrls || [];
 
   detailEl.innerHTML = `
     <div class="product-gallery">
-      ${
-        photos.length > 0
-          ? photos
-              .map((url, i) =>
-                i === 0
-                  ? `
-                    <div class="product-gallery-zoom-outer">
-                      <div class="product-gallery-zoom" id="gallery-zoom-box">
-                        <img src="${url}" alt="" id="gallery-hero-img">
-                        <div class="gallery-zoom-lens" id="gallery-zoom-lens"></div>
-                      </div>
-                      <div class="gallery-zoom-result" id="gallery-zoom-result"></div>
-                    </div>
-                  `
-                  : `<img src="${url}" alt="">`,
-              )
-              .join("")
-          : `<div style="grid-column:span 3;aspect-ratio:16/9;background:var(--muted);border-radius:var(--radius-lg)"></div>`
-      }
+      ${renderGallery()}
       ${product.videoUrl ? `<video src="${product.videoUrl}" controls style="grid-column:span 3;border-radius:var(--radius-lg);width:100%"></video>` : ""}
     </div>
     <div>
@@ -61,6 +125,7 @@ function render() {
           <div class="product-detail-stat-value">${product.minOrderQuantity} ${unitLabel}</div>
         </div>
       </div>
+      ${renderFreshnessBadge(product)}
       <div class="card product-qty-calc" style="margin-top:1rem;padding:1rem">
         <label class="label" for="qty-calc-input">${t("products.calcQuantityLabel")}</label>
         <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-top:0.5rem">
@@ -71,7 +136,10 @@ function render() {
         ${
           isOwner
             ? ""
-            : `<button type="button" class="btn btn-default" id="order-now-btn" style="margin-top:0.75rem">${icon("message-square")} ${t("products.orderNow")}</button>`
+            : `<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem">
+                <button type="button" class="btn btn-default" id="order-now-btn">${icon("message-square")} ${t("products.orderNow")}</button>
+                <button type="button" class="btn btn-outline" id="add-to-cart-btn">${icon("shopping-cart")} ${t("cart.addToCart")}</button>
+              </div>`
         }
       </div>
       <p style="margin-top:1rem;white-space:pre-line">${product.description}</p>
@@ -100,11 +168,13 @@ function render() {
   updateQtyTotal();
 
   initGalleryZoom();
+  wireGallery();
 
   if (!isOwner) {
     const negotiateBtn = document.getElementById("negotiate-btn");
     negotiateBtn.addEventListener("click", handleNegotiate);
     document.getElementById("order-now-btn").addEventListener("click", () => handleOrderNow(Number(qtyInput.value)));
+    document.getElementById("add-to-cart-btn").addEventListener("click", () => handleAddToCart(Number(qtyInput.value)));
     initReportDialog(document.getElementById("report-mount"), product.ownerId, product.ownerName);
   }
 }
@@ -206,11 +276,29 @@ async function handleOrderNow(quantity) {
   }
 }
 
+async function handleAddToCart(quantity) {
+  if (!authState.user || !authState.profile) {
+    location.href = "login.html";
+    return;
+  }
+  const qty = quantity || product.minOrderQuantity;
+  await addToCart(product.id, qty);
+  const btn = document.getElementById("add-to-cart-btn");
+  if (btn) {
+    const original = btn.innerHTML;
+    btn.innerHTML = `${icon("check")} ${t("cart.added")}`;
+    setTimeout(() => {
+      btn.innerHTML = original;
+    }, 1800);
+  }
+}
+
 async function main() {
   await initLayout();
   if (!productId) return;
 
   product = await Products.getProduct(productId);
+  activePhotoIndex = 0;
   Products.incrementProductViews(productId);
   render();
 

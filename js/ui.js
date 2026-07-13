@@ -4,7 +4,8 @@
 // render helper.
 import { authState, favoritesState, toggleFavorite } from "./state.js";
 import { t, getLocale } from "./i18n.js";
-import { Reports, Comments, SiteSettings, Storage } from "./firebase.js";
+import { Reports, Comments, SiteSettings, Storage, PhoneAttempts } from "./firebase.js";
+import { computeFreshness } from "./constants.js";
 
 export function btnClass(variant = "default", size = "default", extra = "") {
   const variantClass = {
@@ -99,6 +100,10 @@ const ICON_PATHS = {
   whatsapp: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
   tiktok: '<path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>',
   youtube: '<rect x="2" y="6" width="20" height="12" rx="3"/><path d="M10 9l5 3-5 3z" fill="currentColor" stroke="none"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  "shopping-cart": '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
 };
 
 export function icon(name, extraClass = "") {
@@ -304,6 +309,7 @@ export function renderImageInput(mountEl, { value = "", uploadPathPrefix, accept
 // ---------------------------------------------------------------------------
 export function productCardHTML(product, categoryLabel, governorateLabel, perKgLabel) {
   const photo = product.photoUrls?.[0];
+  const freshness = product.harvestDate ? computeFreshness(product.harvestDate, product.category) : null;
   return `
     <a class="card card-flush product-card" href="product.html?id=${product.id}">
       <div class="product-card-media">
@@ -317,6 +323,7 @@ export function productCardHTML(product, categoryLabel, governorateLabel, perKgL
         </div>
         <p class="product-card-gov">${governorateLabel}</p>
         <p class="product-card-price">${product.price} ${perKgLabel}</p>
+        ${freshness ? `<span class="product-card-freshness freshness-${freshness.level}">${t(`freshness.${freshness.level}`)}</span>` : ""}
       </div>
     </a>
   `;
@@ -424,6 +431,14 @@ export function initProductComments(containerEl, productId) {
         if (!text || !authState.profile) return;
         if (containsPhoneNumber(text)) {
           showMessage(errorEl, t("comments.phoneNotAllowed"));
+          PhoneAttempts.logAttempt({
+            uid: authState.user.uid,
+            name: authState.profile.fullName,
+            context: "comment",
+            contextId: productId,
+            targetName: null,
+            snippet: text,
+          }).catch(() => {});
           return;
         }
         showMessage(errorEl, "");

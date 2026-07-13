@@ -29,11 +29,20 @@ function renderHero() {
       ? heroImages.map((_, i) => `<button type="button" class="hero-dot ${i === activeSlide ? "is-active" : ""}" data-slide="${i}"></button>`).join("")
       : "";
   dotsEl.querySelectorAll("[data-slide]").forEach((dot) => {
-    dot.addEventListener("click", () => {
-      activeSlide = Number(dot.dataset.slide);
-      renderHero();
-    });
+    dot.addEventListener("click", () => goToSlide(Number(dot.dataset.slide)));
   });
+}
+
+function goToSlide(index) {
+  const len = heroImages.length;
+  activeSlide = ((index % len) + len) % len;
+  renderHero();
+  startHeroRotation();
+}
+
+function wireHeroArrows() {
+  document.getElementById("hero-prev").addEventListener("click", () => goToSlide(activeSlide - 1));
+  document.getElementById("hero-next").addEventListener("click", () => goToSlide(activeSlide + 1));
 }
 
 function startHeroRotation() {
@@ -159,6 +168,7 @@ let siteContent = { ar: {}, en: {} };
 async function main() {
   await initLayout();
   renderTrustBadges();
+  wireHeroArrows();
   await loadSiteImages();
   await renderFeaturedProducts();
   renderAdSlot(document.getElementById("ad-home-top"), "home-top", Ads);

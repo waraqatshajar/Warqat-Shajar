@@ -65,6 +65,45 @@ export const CATEGORY_IMAGES = {
   organic: "images/categories/organic.jpg",
 };
 
+// Assumed shelf life (days) per category, at good farmer-side storage — used
+// to derive a freshness score from how long ago the crop was harvested.
+// Perishables (vegetables/fruits/organic) are short; dried staples
+// (grains/cotton) are long. Custom admin-added categories fall back to
+// DEFAULT_SHELF_LIFE_DAYS since their perishability is unknown.
+export const SHELF_LIFE_DAYS = {
+  vegetables: 7,
+  fruits: 10,
+  organic: 5,
+  wheat: 365,
+  cotton: 365,
+  barley: 270,
+  rice: 270,
+};
+export const DEFAULT_SHELF_LIFE_DAYS = 14;
+
+// Freshness stays at 100% for the first half of the assumed shelf life, then
+// declines linearly to a 20% floor by the time the shelf life is fully
+// elapsed (never reads as literally 0/worthless).
+export function computeFreshness(harvestDate, categoryId) {
+  const harvest = harvestDate?.toDate ? harvestDate.toDate() : new Date(harvestDate);
+  const shelfLifeDays = SHELF_LIFE_DAYS[categoryId] || DEFAULT_SHELF_LIFE_DAYS;
+  const daysSince = (Date.now() - harvest.getTime()) / (1000 * 60 * 60 * 24);
+  const halfLife = shelfLifeDays / 2;
+
+  let pct;
+  if (daysSince <= halfLife) {
+    pct = 100;
+  } else if (daysSince >= shelfLifeDays) {
+    pct = 20;
+  } else {
+    const ratio = (daysSince - halfLife) / (shelfLifeDays - halfLife);
+    pct = Math.round(100 - ratio * 80);
+  }
+
+  const level = pct >= 80 ? "high" : pct >= 50 ? "medium" : "low";
+  return { pct, level, daysSince: Math.max(0, Math.floor(daysSince)), harvestDate: harvest };
+}
+
 export function governorateLabel(id, locale) {
   const gov = GOVERNORATES.find((g) => g.id === id);
   return gov ? gov[locale] : id;

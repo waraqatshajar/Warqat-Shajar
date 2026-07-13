@@ -1,7 +1,7 @@
 import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, onLocaleChange } from "../i18n.js";
-import { Chat, Products, Reviews } from "../firebase.js";
+import { Chat, Products, Reviews, PhoneAttempts } from "../firebase.js";
 import { authState } from "../state.js";
 import { btnClass, badgeClass, icon, initReportDialog, renderStarButtons, showMessage, containsPhoneNumber } from "../ui.js";
 
@@ -23,6 +23,7 @@ const STATUS_KEY = {
   accepted: "chat.offerStatusAccepted",
   declined: "chat.offerStatusDeclined",
   countered: "chat.offerStatusCountered",
+  cancelled: "chat.offerStatusCancelled",
 };
 
 function otherParticipant() {
@@ -117,6 +118,7 @@ function renderMessages() {
             }
             const o = m.offer;
             const canRespond = !isMine && o.status === "pending";
+            const canCancel = isMine && o.status === "pending";
             return `
             <div class="chat-row ${isMine ? "is-mine" : ""}">
               <div class="card offer-card">
@@ -137,6 +139,15 @@ function renderMessages() {
                   `
                     : ""
                 }
+                ${
+                  canCancel
+                    ? `
+                    <div class="offer-actions">
+                      <button type="button" class="${btnClass("ghost", "sm")}" data-cancel="${m.id}">${t("chat.cancelOffer")}</button>
+                    </div>
+                  `
+                    : ""
+                }
               </div>
             </div>
           `;
@@ -148,6 +159,11 @@ function renderMessages() {
   });
   messagesEl.querySelectorAll("[data-decline]").forEach((btn) => {
     btn.addEventListener("click", () => Chat.respondToOffer(chatId, btn.dataset.decline, "declined"));
+  });
+  messagesEl.querySelectorAll("[data-cancel]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (confirm(t("chat.confirmCancelOffer"))) Chat.respondToOffer(chatId, btn.dataset.cancel, "cancelled");
+    });
   });
   messagesEl.querySelectorAll("[data-counter]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -272,6 +288,14 @@ async function main() {
     if (!text) return;
     if (containsPhoneNumber(text)) {
       showMessage(chatErrorEl, t("chat.phoneNotAllowed"));
+      PhoneAttempts.logAttempt({
+        uid: profile.uid,
+        name: profile.fullName,
+        context: "chat",
+        contextId: chatId,
+        targetName: otherParticipant().name,
+        snippet: text,
+      }).catch(() => {});
       return;
     }
     showMessage(chatErrorEl, "");

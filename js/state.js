@@ -1,6 +1,6 @@
 // Module-level singleton replacing AuthContext + FavoritesContext (React).
 // Ported 1:1 from src/contexts/{auth-context,favorites-context}.tsx.
-import { auth, db, Auth, Admin, Favorites, OWNER_EMAIL } from "./firebase.js";
+import { auth, db, Auth, Admin, Favorites, Cart, OWNER_EMAIL } from "./firebase.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const listeners = new Set();
@@ -19,6 +19,11 @@ export const favoritesState = {
   loading: false,
 };
 
+export const cartState = {
+  items: new Map(), // productId -> quantity
+  loading: false,
+};
+
 export function subscribe(fn) {
   listeners.add(fn);
   return () => listeners.delete(fn);
@@ -32,8 +37,28 @@ function sessionKey(uid) {
   return `adminModeUnlocked:${uid}`;
 }
 
+const THEME_KEY = "wsj-theme";
+let userPrefersDark = localStorage.getItem(THEME_KEY)
+  ? localStorage.getItem(THEME_KEY) === "dark"
+  : matchMedia("(prefers-color-scheme: dark)").matches;
+
+// The "dark" class is shared by two independent signals: an admin's own
+// dark-mode preference, and admin mode being active (a separate visual cue
+// this app already used the same class for) — either one should darken the
+// site, so this must OR them rather than one clobbering the other.
 function applyDarkMode() {
-  document.documentElement.classList.toggle("dark", authState.isAdminModeActive);
+  document.documentElement.classList.toggle("dark", authState.isAdminModeActive || userPrefersDark);
+}
+applyDarkMode();
+
+export function isUserThemeDark() {
+  return userPrefersDark;
+}
+
+export function setUserThemeDark(isDark) {
+  userPrefersDark = isDark;
+  localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
+  applyDarkMode();
 }
 
 function recomputeAdminMode(adminModeUnlocked) {
@@ -46,6 +71,7 @@ let adminModeUnlocked = false;
 let unsubProfile = null;
 let unsubAdmin = null;
 let unsubFavorites = null;
+let unsubCart = null;
 let bootstrapAttempted = false;
 
 Auth.onChange((nextUser) => {
@@ -54,7 +80,8 @@ Auth.onChange((nextUser) => {
   if (unsubProfile) unsubProfile();
   if (unsubAdmin) unsubAdmin();
   if (unsubFavorites) unsubFavorites();
-  unsubProfile = unsubAdmin = unsubFavorites = null;
+  if (unsubCart) unsubCart();
+  unsubProfile = unsubAdmin = unsubFavorites = unsubCart = null;
 
   if (!nextUser) {
     authState.profile = null;
@@ -63,6 +90,7 @@ Auth.onChange((nextUser) => {
     bootstrapAttempted = false;
     authState.loading = false;
     favoritesState.favoriteIds = new Set();
+    cartState.items = new Map();
     recomputeAdminMode(false);
     notify();
     return;
@@ -107,6 +135,13 @@ Auth.onChange((nextUser) => {
     notify();
   });
 
+  cartState.loading = true;
+  unsubCart = Cart.subscribeCart(nextUser.uid, (items) => {
+    cartState.items = new Map(items.map((i) => [i.productId, i.quantity]));
+    cartState.loading = false;
+    notify();
+  });
+
   notify();
 });
 
@@ -129,4 +164,19 @@ export async function toggleFavorite(productId) {
   } else {
     await Favorites.addFavorite(authState.user.uid, productId);
   }
+}
+
+export async function addToCart(productId, quantity) {
+  if (!authState.user) return;
+  await Cart.addToCart(authState.user.uid, productId, quantity);
+}
+
+export async function updateCartQuantity(productId, quantity) {
+  if (!authState.user) return;
+  await Cart.updateCartQuantity(authState.user.uid, productId, quantity);
+}
+
+export async function removeFromCart(productId) {
+  if (!authState.user) return;
+  await Cart.removeFromCart(authState.user.uid, productId);
 }

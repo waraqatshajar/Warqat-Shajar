@@ -2,7 +2,7 @@
 // switcher, footer year. Markup itself is repeated per HTML file (see
 // partials below used when authoring pages); this module only wires
 // behavior against fixed IDs present identically on every page.
-import { authState, favoritesState, subscribe } from "./state.js";
+import { authState, favoritesState, cartState, subscribe, isUserThemeDark, setUserThemeDark } from "./state.js";
 import { Auth, SiteSettings } from "./firebase.js";
 import { t, getLocale, setLocale, initI18n, onLocaleChange } from "./i18n.js";
 import { icon, renderAvatar, wireDropdown, renderIcons } from "./ui.js";
@@ -97,6 +97,40 @@ function wireWishlistLink() {
   });
 }
 
+function renderCartBadge() {
+  const badge = document.getElementById("header-cart-badge");
+  if (!badge) return;
+  const count = cartState.items.size;
+  badge.textContent = String(count);
+  badge.style.display = count > 0 ? "flex" : "none";
+}
+
+function wireCartLink() {
+  const link = document.getElementById("header-cart-link");
+  if (!link) return;
+  link.addEventListener("click", (e) => {
+    if (!authState.user) {
+      e.preventDefault();
+      location.href = "login.html";
+    }
+  });
+}
+
+function updateThemeToggleIcon() {
+  const btn = document.getElementById("theme-toggle");
+  if (btn) btn.innerHTML = icon(isUserThemeDark() ? "sun" : "moon");
+}
+
+function wireThemeToggle() {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  updateThemeToggleIcon();
+  btn.addEventListener("click", () => {
+    setUserThemeDark(!isUserThemeDark());
+    updateThemeToggleIcon();
+  });
+}
+
 function wireLanguageSwitch() {
   const btn = document.getElementById("lang-switch");
   if (!btn) return;
@@ -115,7 +149,7 @@ function renderFooterYear() {
 async function applyLogo() {
   const images = await SiteSettings.getSiteImagesOnce().catch(() => ({}));
   if (images.logoUrl) {
-    document.querySelectorAll(".logo img, .splash-logo").forEach((img) => {
+    document.querySelectorAll(".logo img, .splash-logo, .about-logo-badge img").forEach((img) => {
       img.src = images.logoUrl;
     });
   }
@@ -152,17 +186,21 @@ export async function initLayout() {
   await initI18n();
   renderIcons(document);
   initSplashScreen();
+  wireThemeToggle();
   wireLanguageSwitch();
   renderFooterYear();
   wireWishlistLink();
+  wireCartLink();
   renderHeaderAuthArea();
   renderWishlistBadge();
+  renderCartBadge();
   applyLogo();
   applyBrandColor();
   renderFooterSocial();
   subscribe(() => {
     renderHeaderAuthArea();
     renderWishlistBadge();
+    renderCartBadge();
   });
   onLocaleChange(() => {
     renderHeaderAuthArea();

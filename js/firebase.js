@@ -414,6 +414,75 @@ export const Chat = {
 
     return perChat.flat().sort((a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0));
   },
+
+  // The buyer-side mirror of listIncomingOffers — every offer a buyer has
+  // sent across all their product chats, regardless of which farmer it went to.
+  async listMyOffers(buyerUid) {
+    const chatsSnap = await getDocs(query(chatsCol, where("participantIds", "array-contains", buyerUid)));
+    const productChats = chatsSnap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((c) => c.contextType === "product");
+
+    const perChat = await Promise.all(
+      productChats.map(async (chat) => {
+        const farmerUid = chat.participantIds.find((id) => id !== buyerUid);
+        if (!farmerUid) return [];
+        const messagesSnap = await getDocs(
+          query(collection(db, "chats", chat.id, "messages"), orderBy("createdAt", "desc")),
+        );
+        return messagesSnap.docs
+          .filter((m) => m.data().type === "offer" && m.data().senderId === buyerUid)
+          .map((m) => {
+            const data = m.data();
+            return {
+              ...data.offer,
+              chatId: chat.id,
+              messageId: m.id,
+              productId: chat.contextId,
+              productLabel: chat.contextLabel,
+              farmerName: chat.participantNames[farmerUid],
+              createdAt: data.createdAt ?? null,
+            };
+          });
+      }),
+    );
+
+    return perChat.flat().sort((a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0));
+  },
+
+  // Admin-only: every chat, for the moderation/oversight view. Read-only —
+  // never call anything here that writes to the chat or its messages, so
+  // browsing a conversation stays invisible to its participants.
+  async listAllChats() {
+    const snap = await getDocs(query(chatsCol, orderBy("lastMessageAt", "desc")));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  },
+};
+
+// ===========================================================================
+// Phone-attempt logging — a user's own client writes one of these whenever
+// containsPhoneNumber() blocks their chat/comment submission, so admins can
+// see who tried to share contact info, when, and with/on whom.
+// ===========================================================================
+const phoneAttemptsCol = collection(db, "phoneAttempts");
+
+export const PhoneAttempts = {
+  async logAttempt({ uid, name, context, contextId, targetName, snippet }) {
+    await addDoc(phoneAttemptsCol, {
+      uid,
+      name,
+      context,
+      contextId,
+      targetName: targetName ?? null,
+      snippet,
+      createdAt: serverTimestamp(),
+    });
+  },
+
+  async listAll() {
+    const snap = await getDocs(query(phoneAttemptsCol, orderBy("createdAt", "desc")));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  },
 };
 
 // ===========================================================================
@@ -440,6 +509,44 @@ export const Favorites = {
 
   subscribeFavorites(uid, callback) {
     const q = query(favoritesCol, where("uid", "==", uid), orderBy("createdAt", "desc"));
+    return onSnapshot(
+      q,
+      (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => callback([]),
+    );
+  },
+};
+
+// ===========================================================================
+// Cart — same one-doc-per-(user,product) shape as Favorites, plus a
+// quantity field the user can adjust from the cart page.
+// ===========================================================================
+const cartItemsCol = collection(db, "cartItems");
+
+function cartItemId(uid, productId) {
+  return `${uid}_${productId}`;
+}
+
+export const Cart = {
+  async addToCart(uid, productId, quantity) {
+    await setDoc(doc(cartItemsCol, cartItemId(uid, productId)), {
+      uid,
+      productId,
+      quantity,
+      addedAt: serverTimestamp(),
+    });
+  },
+
+  async updateCartQuantity(uid, productId, quantity) {
+    await updateDoc(doc(cartItemsCol, cartItemId(uid, productId)), { quantity });
+  },
+
+  async removeFromCart(uid, productId) {
+    await deleteDoc(doc(cartItemsCol, cartItemId(uid, productId)));
+  },
+
+  subscribeCart(uid, callback) {
+    const q = query(cartItemsCol, where("uid", "==", uid), orderBy("addedAt", "desc"));
     return onSnapshot(
       q,
       (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
@@ -547,6 +654,17 @@ export const Admin = {
 
   async setAdminModeCode(uid, code) {
     await updateDoc(doc(db, "admins", uid), { adminModeCode: code });
+  },
+
+  // Support-chat opt-in: an admin who flips this on shows up as a pickable
+  // contact on the public "Contact Us" page.
+  async setAcceptingSupport(uid, accepting) {
+    await updateDoc(doc(db, "admins", uid), { acceptingSupport: accepting });
+  },
+
+  async listSupportAdmins() {
+    const snap = await getDocs(query(collection(db, "admins"), where("acceptingSupport", "==", true)));
+    return snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
   },
 
   async verifyAdminModeCode(uid, code) {

@@ -20,6 +20,16 @@ const CONTENT_FIELDS = [
   { key: "ctaSubtitle", labelKey: "branding.fieldCtaSubtitle", fallback: "Farmer CTA subtitle" },
 ];
 
+const ABOUT_CONTENT_FIELDS = [
+  { key: "aboutHeroBadge", labelKey: "branding.fieldAboutHeroBadge", fallback: "About page badge text" },
+  { key: "aboutHeroHeadline", labelKey: "branding.fieldAboutHeroHeadline", fallback: "About page headline" },
+  { key: "aboutHeroSubheadline", labelKey: "branding.fieldAboutHeroSubheadline", fallback: "About page subheadline" },
+  { key: "aboutMissionTitle", labelKey: "branding.fieldAboutMissionTitle", fallback: "Mission section title" },
+  { key: "aboutMissionBody", labelKey: "branding.fieldAboutMissionBody", fallback: "Mission section body" },
+  { key: "aboutCtaTitle", labelKey: "branding.fieldAboutCtaTitle", fallback: "About page CTA title" },
+  { key: "aboutCtaSubtitle", labelKey: "branding.fieldAboutCtaSubtitle", fallback: "About page CTA subtitle" },
+];
+
 const SOCIAL_PLATFORMS = ["facebook", "instagram", "x", "whatsapp", "tiktok", "youtube", "other"];
 
 let heroInput;
@@ -60,6 +70,32 @@ function render() {
       `,
       ).join("")}
       <span id="content-saved" class="success-text" style="display:none">${t("branding.saved")}</span>
+      <button type="submit" class="${btnClass("default")}" style="align-self:flex-start">${t("branding.saveChanges", "Save")}</button>
+    </form>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.aboutContentTitle", "About Page Text")}</h2>
+    <form id="about-content-form" class="form-stack card" style="padding:1.5rem;margin-top:0.75rem">
+      ${ABOUT_CONTENT_FIELDS.map(
+        (f) => `
+        <div class="field">
+          <label class="label">${t(f.labelKey, f.fallback)}</label>
+          <div class="grid-2" style="gap:0.5rem">
+            ${
+              f.key === "aboutMissionBody"
+                ? `
+              <textarea class="textarea" rows="3" data-content-ar="${f.key}" placeholder="${t("branding.arabicPlaceholder", "Arabic")}">${siteContent.ar?.[f.key] ?? ""}</textarea>
+              <textarea class="textarea force-ltr" dir="ltr" rows="3" data-content-en="${f.key}" placeholder="${t("branding.englishPlaceholder", "English")}">${siteContent.en?.[f.key] ?? ""}</textarea>
+            `
+                : `
+              <input class="input" data-content-ar="${f.key}" placeholder="${t("branding.arabicPlaceholder", "Arabic")}" value="${siteContent.ar?.[f.key] ?? ""}">
+              <input class="input force-ltr" dir="ltr" data-content-en="${f.key}" placeholder="${t("branding.englishPlaceholder", "English")}" value="${siteContent.en?.[f.key] ?? ""}">
+            `
+            }
+          </div>
+        </div>
+      `,
+      ).join("")}
+      <span id="about-content-saved" class="success-text" style="display:none">${t("branding.saved")}</span>
       <button type="submit" class="${btnClass("default")}" style="align-self:flex-start">${t("branding.saveChanges", "Save")}</button>
     </form>
 
@@ -176,6 +212,22 @@ function render() {
     await SiteSettings.updateSiteContent("ar", arPatch);
     await SiteSettings.updateSiteContent("en", enPatch);
     const saved = contentEl.querySelector("#content-saved");
+    saved.style.display = "inline";
+    setTimeout(() => (saved.style.display = "none"), 2500);
+  });
+
+  // About page text
+  contentEl.querySelector("#about-content-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const arPatch = {};
+    const enPatch = {};
+    ABOUT_CONTENT_FIELDS.forEach((f) => {
+      arPatch[f.key] = contentEl.querySelector(`[data-content-ar="${f.key}"]`).value.trim();
+      enPatch[f.key] = contentEl.querySelector(`[data-content-en="${f.key}"]`).value.trim();
+    });
+    await SiteSettings.updateSiteContent("ar", arPatch);
+    await SiteSettings.updateSiteContent("en", enPatch);
+    const saved = contentEl.querySelector("#about-content-saved");
     saved.style.display = "inline";
     setTimeout(() => (saved.style.display = "none"), 2500);
   });

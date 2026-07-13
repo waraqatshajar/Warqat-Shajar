@@ -16,6 +16,8 @@ function visibleAdmins() {
 function render() {
   const list = visibleAdmins();
   const currentUid = auth.currentUser?.uid;
+  const me = admins.find((a) => a.uid === currentUid);
+  const acceptingSupport = Boolean(me?.acceptingSupport);
 
   contentEl.innerHTML = `
     <h1 class="heading" style="font-size:1.5rem">${t("admin.admins")}</h1>
@@ -45,6 +47,14 @@ function render() {
       <button type="submit" class="${btnClass("outline")}" style="align-self:flex-start">${t("admin.saveChanges")}</button>
     </form>
 
+    <div class="card" style="padding:1.5rem;margin-top:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div>
+        <h2 class="card-title" style="font-size:1rem">${t("admin.acceptSupportTitle")}</h2>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:0.15rem">${t("admin.acceptSupportHint")}</p>
+      </div>
+      <button type="button" class="${btnClass(acceptingSupport ? "default" : "outline", "sm")}" id="toggle-support-btn">${acceptingSupport ? t("admin.acceptSupportOn") : t("admin.acceptSupportOff")}</button>
+    </div>
+
     <div class="card" style="margin-top:1rem;padding:0 1rem">
       ${
         list.length === 0
@@ -55,7 +65,7 @@ function render() {
               <div class="list-row">
                 <div class="list-row-main"><div style="font-weight:600" class="force-ltr">${a.email}</div></div>
                 ${
-                  a.uid !== currentUid && a.email !== OWNER_EMAIL
+                  authState.isOwner && a.uid !== currentUid && a.email !== OWNER_EMAIL
                     ? `<button type="button" class="${btnClass("destructive", "sm")}" data-revoke="${a.uid}">${t("admin.revokeAdmin")}</button>`
                     : ""
                 }
@@ -89,6 +99,11 @@ function render() {
     const saved = contentEl.querySelector("#change-code-saved");
     saved.style.display = "block";
     setTimeout(() => (saved.style.display = "none"), 2500);
+  });
+
+  contentEl.querySelector("#toggle-support-btn").addEventListener("click", async () => {
+    await Admin.setAcceptingSupport(currentUid, !acceptingSupport);
+    await reload();
   });
 
   contentEl.querySelectorAll("[data-revoke]").forEach((btn) => {

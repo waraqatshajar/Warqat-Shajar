@@ -15,7 +15,7 @@
     {
       "name": "waraqat-shajar-vanilla",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5500"],
+      "runtimeArgs": ["devserver.py", "5500"],
       "port": 5500
     }
   ]

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Waraqat Shajar — Edit Product</title>
+  <title>Waraqat Shajar — My Orders</title>
   <link rel="icon" href="images/logo-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,8 +52,11 @@
       </aside>
       <div class="shell-content">
         <div id="status-banner-mount"></div>
-        <h1 class="heading" style="font-size:1.5rem" data-i18n="products.editProduct">Edit Product</h1>
-        <div id="product-form-mount"></div>
+        <div>
+          <h1 class="heading" style="font-size:1.5rem" data-i18n="myOrders.title">My Orders</h1>
+          <p class="text-muted" data-i18n="myOrders.subtitle">Every offer you've sent to a farmer</p>
+        </div>
+        <div id="my-orders-list"></div>
       </div>
     </div>
   </main>
@@ -95,6 +98,6 @@
     </div>
   </footer>
 
-  <script type="module" src="js/pages/dashboard-product-edit.js"></script>
+  <script type="module" src="js/pages/dashboard-my-orders.js"></script>
 </body>
 </html>

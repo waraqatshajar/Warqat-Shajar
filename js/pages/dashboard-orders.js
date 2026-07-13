@@ -15,6 +15,7 @@ const STATUS_KEY = {
   accepted: "chat.offerStatusAccepted",
   declined: "chat.offerStatusDeclined",
   countered: "chat.offerStatusCountered",
+  cancelled: "chat.offerStatusCancelled",
 };
 
 function render() {

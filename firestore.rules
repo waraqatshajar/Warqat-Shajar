@@ -36,18 +36,20 @@ service cloud.firestore {
     }
 
     // One-time bootstrap: only this exact account may grant itself admin.
-    // Once created, only existing admins can modify the admins list.
-    // Any admin may promote/revoke other admins, but only the owner may
-    // touch the owner's own admin doc — no one else can ever demote them.
+    // Once created, any admin may promote new admins, but only the owner may
+    // revoke an existing admin doc or touch someone else's — regular admins
+    // can add colleagues and manage their own admin-mode password / support
+    // opt-in, but can never demote or edit one another.
     match /admins/{uid} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() &&
         ((request.auth.uid == uid && request.auth.token.email == 'sgyiath@gmail.com') ||
          isAdmin());
-      allow update: if isOwner() ||
-        (isAdmin() && resource.data.email != 'sgyiath@gmail.com');
-      allow delete: if isOwner() ||
-        (isAdmin() && resource.data.email != 'sgyiath@gmail.com');
+      allow update: if isOwner() || (
+        isAdmin() && request.auth.uid == uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adminModeCode', 'acceptingSupport'])
+      );
+      allow delete: if isOwner();
     }
 
     match /users/{uid} {
@@ -131,9 +133,15 @@ service cloud.firestore {
           isSignedIn() &&
           request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds &&
           resource.data.type == 'offer' &&
-          resource.data.senderId != request.auth.uid &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['offer']) &&
-          request.resource.data.offer.status in ['accepted', 'declined', 'countered']
+          (
+            (resource.data.senderId != request.auth.uid &&
+             request.resource.data.offer.status in ['accepted', 'declined', 'countered']) ||
+            // The buyer may withdraw their own offer while it's still pending.
+            (resource.data.senderId == request.auth.uid &&
+             resource.data.offer.status == 'pending' &&
+             request.resource.data.offer.status == 'cancelled')
+          )
         );
         allow delete: if isAdmin();
       }
@@ -162,11 +170,27 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
+    match /cartItems/{itemId} {
+      allow read: if isSignedIn() &&
+        (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.uid == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity']);
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
     match /productComments/{commentId} {
       allow read: if true;
       allow create: if isActiveUser() && request.resource.data.uid == request.auth.uid;
       allow update, delete: if isSignedIn() &&
         (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
+    // Logged whenever a user's own client blocks their attempt to share a
+    // phone number in chat/comments — visible only to admins for moderation.
+    match /phoneAttempts/{attemptId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
     }
 
     match /{document=**} {
