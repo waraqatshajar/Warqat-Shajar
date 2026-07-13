@@ -762,18 +762,25 @@ main {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  /* On narrow phones, 5 header buttons can need more room than the viewport
-     has (logo + search-hidden + all these icons) — without min-width:0 a
-     flex item never shrinks past its content's natural size, so it was
-     pushed off-screen instead of wrapping. Letting it scroll internally
-     keeps everything reachable instead of clipped/overlapping. */
+  min-width: 0;
+}
+
+/* On narrow phones the icon cluster (theme/lang/cart/wishlist) can need more
+   room than the viewport has, so it scrolls internally rather than pushing
+   off-screen. This wrapper is deliberately separate from #header-auth-area:
+   overflow-x here forces overflow-y to auto too (CSS spec), which would
+   clip the account dropdown menu if it lived in the same clipped box. */
+.header-actions-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.header-actions::-webkit-scrollbar {
+.header-actions-scroll::-webkit-scrollbar {
   display: none;
 }
 
