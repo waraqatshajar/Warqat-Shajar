@@ -87,8 +87,12 @@ function render() {
 }
 
 async function reload() {
-  reports = await Reports.listAllReports();
-  render();
+  try {
+    reports = await Reports.listAllReports();
+    render();
+  } catch {
+    contentEl.innerHTML = `<p class="empty-state">${t("admin.loadError")}</p>`;
+  }
 }
 
 async function main() {

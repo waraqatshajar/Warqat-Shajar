@@ -49,7 +49,10 @@
     "remove": "Remove",
     "total": "Grand Total",
     "addToCart": "Add to Cart",
-    "added": "Added"
+    "added": "Added",
+    "addFailed": "Couldn't add to cart, please try again",
+    "updateFailed": "Couldn't update the cart, please try again",
+    "orderFailed": "Couldn't send the order, please try again"
   },
   "roles": {
     "farmer": "Farmer",
@@ -193,7 +196,10 @@
       "wrongCredentials": "Incorrect email or password",
       "passwordMismatch": "Passwords do not match",
       "termsRequired": "You must agree to the Terms & Conditions to continue",
-      "accountTypeRequired": "Please select an account type"
+      "accountTypeRequired": "Please select an account type",
+      "unauthorizedDomain": "Google sign-in isn't enabled on this site yet — try again later or use email instead",
+      "popupBlocked": "Your browser blocked the sign-in window — allow pop-ups for this site and try again",
+      "popupClosed": "The sign-in window was closed before finishing — please try again"
     }
   },
   "terms": {
@@ -318,13 +324,11 @@
     "required": "This field is required",
     "uploadFailed": "Failed to save product, please try again",
     "tourAdd": "Tap here to list a new product for sale — just a photo, price, and quantity.",
-    "tourCard": "Each of your products gets a card here: photo, price, and how many views or offers it got — pause or delete it anytime."
+    "tourCard": "Each of your products gets a card here: photo, price, and how many views or offers it got — pause or delete it anytime.",
+    "phoneNotAllowed": "Phone numbers aren't allowed in the product description — keep contact inside chat"
   },
   "freshness": {
-    "label": "Freshness",
-    "high": "Very Fresh",
-    "medium": "Good Quality",
-    "low": "Lower Quality",
+    "label": "Quality",
     "harvestedOn": "Harvested on",
     "daysAgo": "{days} days ago"
   },
@@ -407,7 +411,8 @@
     "detailsLabel": "Additional details",
     "submit": "Submit Report",
     "submitted": "Report submitted, our team will review it",
-    "reportUser": "Report this user"
+    "reportUser": "Report this user",
+    "phoneNotAllowed": "Phone numbers aren't allowed in report details"
   },
   "admin": {
     "title": "Admin Panel",
@@ -437,6 +442,7 @@
     "noUsers": "No users",
     "removeListing": "Remove Listing",
     "accessDenied": "You don't have access to this page",
+    "loadError": "Couldn't load the data. If this keeps happening, make sure the security rules (firestore.rules) are published on the Firebase project.",
     "deleteUser": "Delete Account",
     "confirmDeleteUser": "Are you sure you want to permanently delete this account? This cannot be undone",
     "admins": "Admins",

@@ -130,11 +130,15 @@ function closeChat() {
 }
 
 async function reload() {
-  chats = await Chat.listAllChats();
-  if (activeChat) {
-    renderViewer();
-  } else {
-    renderList();
+  try {
+    chats = await Chat.listAllChats();
+    if (activeChat) {
+      renderViewer();
+    } else {
+      renderList();
+    }
+  } catch {
+    contentEl.innerHTML = `<p class="empty-state">${t("admin.loadError")}</p>`;
   }
 }
 

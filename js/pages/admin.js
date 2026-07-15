@@ -145,21 +145,25 @@ function render() {
 }
 
 async function loadData() {
-  const [analytics, mostActiveRaw, farmerRankingRaw] = await Promise.all([
-    Admin.getPlatformAnalytics(),
-    Admin.listMostActiveUsers(10),
-    Admin.listFarmerDealsRanking(10),
-  ]);
+  try {
+    const [analytics, mostActiveRaw, farmerRankingRaw] = await Promise.all([
+      Admin.getPlatformAnalytics(),
+      Admin.listMostActiveUsers(10),
+      Admin.listFarmerDealsRanking(10),
+    ]);
 
-  const filterOwner = (list) =>
-    authState.isOwner ? list : list.filter((u) => u.email !== OWNER_EMAIL);
+    const filterOwner = (list) =>
+      authState.isOwner ? list : list.filter((u) => u.email !== OWNER_EMAIL);
 
-  data = {
-    analytics,
-    mostActive: filterOwner(mostActiveRaw).filter((u) => u.score > 0),
-    farmerRanking: farmerRankingRaw.filter((f) => f.dealsCount > 0),
-  };
-  render();
+    data = {
+      analytics,
+      mostActive: filterOwner(mostActiveRaw).filter((u) => u.score > 0),
+      farmerRanking: farmerRankingRaw.filter((f) => f.dealsCount > 0),
+    };
+    render();
+  } catch {
+    contentEl.innerHTML = `<p class="empty-state">${t("admin.loadError")}</p>`;
+  }
 }
 
 async function main() {

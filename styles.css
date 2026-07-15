@@ -2134,21 +2134,6 @@ main {
   font-weight: 600;
 }
 
-.freshness-high {
-  background: color-mix(in srgb, #2e7d32 15%, transparent);
-  color: #2e7d32;
-}
-
-.freshness-medium {
-  background: color-mix(in srgb, #d97706 15%, transparent);
-  color: #d97706;
-}
-
-.freshness-low {
-  background: color-mix(in srgb, #dc2626 15%, transparent);
-  color: #dc2626;
-}
-
 .freshness-bar-track {
   margin-top: 0.5rem;
   height: 0.375rem;
@@ -2161,18 +2146,6 @@ main {
   height: 100%;
   border-radius: 999px;
   transition: width 0.6s ease;
-}
-
-.freshness-bar-fill.freshness-high {
-  background: #2e7d32;
-}
-
-.freshness-bar-fill.freshness-medium {
-  background: #d97706;
-}
-
-.freshness-bar-fill.freshness-low {
-  background: #dc2626;
 }
 
 .product-card-freshness {

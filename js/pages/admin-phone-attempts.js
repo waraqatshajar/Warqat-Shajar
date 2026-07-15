@@ -48,8 +48,12 @@ function render() {
 }
 
 async function reload() {
-  attempts = await PhoneAttempts.listAll();
-  render();
+  try {
+    attempts = await PhoneAttempts.listAll();
+    render();
+  } catch {
+    contentEl.innerHTML = `<p class="empty-state">${t("admin.loadError")}</p>`;
+  }
 }
 
 async function main() {

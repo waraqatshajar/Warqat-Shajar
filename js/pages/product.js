@@ -2,7 +2,7 @@ import { initLayout } from "../layout.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Products, Chat, Ads } from "../firebase.js";
 import { governorateLabel, categoryLabelById, onCategoriesChange, computeFreshness } from "../constants.js";
-import { renderAdSlot, favoriteButtonHTML, wireFavoriteButtons, initReportDialog, initProductComments, icon } from "../ui.js";
+import { renderAdSlot, favoriteButtonHTML, wireFavoriteButtons, initReportDialog, initProductComments, icon, showMessage } from "../ui.js";
 import { authState, subscribe, addToCart } from "../state.js";
 
 const params = new URLSearchParams(location.search);
@@ -79,17 +79,17 @@ function wireGallery() {
 
 function renderFreshnessBadge(p) {
   if (!p.harvestDate) return "";
-  const { pct, level, daysSince, harvestDate } = computeFreshness(p.harvestDate, p.category);
+  const { score, color, daysSince, harvestDate } = computeFreshness(p.harvestDate, p.category);
   const dateLabel = harvestDate.toLocaleDateString(getLocale() === "ar" ? "ar-EG" : "en-US");
   const daysLabel = t("freshness.daysAgo").replace("{days}", daysSince);
   return `
     <div class="freshness-card">
       <div class="freshness-header">
-        <span class="freshness-badge freshness-${level}">${t(`freshness.${level}`)}</span>
+        <span class="freshness-badge" style="background:color-mix(in srgb, ${color} 18%, transparent);color:${color}">${t("freshness.label")}: ${score}/10</span>
         <span class="text-muted" style="font-size:0.8rem">${t("freshness.harvestedOn")}: ${dateLabel} (${daysLabel})</span>
       </div>
       <div class="freshness-bar-track">
-        <div class="freshness-bar-fill freshness-${level}" style="width:${pct}%"></div>
+        <div class="freshness-bar-fill" style="width:${score * 10}%;background:${color}"></div>
       </div>
     </div>
   `;
@@ -139,7 +139,8 @@ function render() {
             : `<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem">
                 <button type="button" class="btn btn-default" id="order-now-btn">${icon("message-square")} ${t("products.orderNow")}</button>
                 <button type="button" class="btn btn-outline" id="add-to-cart-btn">${icon("shopping-cart")} ${t("cart.addToCart")}</button>
-              </div>`
+              </div>
+              <p id="cart-error" class="error-text" style="display:none;margin-top:0.5rem"></p>`
         }
       </div>
       <p style="margin-top:1rem;white-space:pre-line">${product.description}</p>
@@ -281,15 +282,21 @@ async function handleAddToCart(quantity) {
     location.href = "login.html";
     return;
   }
+  const errorEl = document.getElementById("cart-error");
+  showMessage(errorEl, "");
   const qty = quantity || product.minOrderQuantity;
-  await addToCart(product.id, qty);
-  const btn = document.getElementById("add-to-cart-btn");
-  if (btn) {
-    const original = btn.innerHTML;
-    btn.innerHTML = `${icon("check")} ${t("cart.added")}`;
-    setTimeout(() => {
-      btn.innerHTML = original;
-    }, 1800);
+  try {
+    await addToCart(product.id, qty);
+    const btn = document.getElementById("add-to-cart-btn");
+    if (btn) {
+      const original = btn.innerHTML;
+      btn.innerHTML = `${icon("check")} ${t("cart.added")}`;
+      setTimeout(() => {
+        btn.innerHTML = original;
+      }, 1800);
+    }
+  } catch {
+    showMessage(errorEl, t("cart.addFailed"));
   }
 }
 

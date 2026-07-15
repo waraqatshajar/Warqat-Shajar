@@ -3,7 +3,7 @@ import { t, getLocale, onLocaleChange } from "../i18n.js";
 import { Products, Chat } from "../firebase.js";
 import { categoryLabelById, onCategoriesChange } from "../constants.js";
 import { authState, cartState, subscribe, updateCartQuantity, removeFromCart } from "../state.js";
-import { btnClass, icon } from "../ui.js";
+import { btnClass, icon, showMessage } from "../ui.js";
 
 const contentEl = document.getElementById("cart-content");
 const productCache = new Map();
@@ -78,18 +78,31 @@ async function render() {
       <span>${t("cart.total")}</span>
       <span class="cart-total-value">${grandTotal.toLocaleString(getLocale())} ${t("products.currency")}</span>
     </div>
+    <p id="cart-page-error" class="error-text" style="display:none;margin-top:0.5rem"></p>
   `;
+
+  const pageErrorEl = contentEl.querySelector("#cart-page-error");
 
   contentEl.querySelectorAll("[data-qty-input]").forEach((input) => {
     input.addEventListener("change", async () => {
       const productId = input.dataset.qtyInput;
       const qty = Number(input.value) || 1;
-      await updateCartQuantity(productId, qty);
+      try {
+        await updateCartQuantity(productId, qty);
+      } catch {
+        showMessage(pageErrorEl, t("cart.updateFailed"));
+      }
     });
   });
 
   contentEl.querySelectorAll("[data-remove]").forEach((btn) => {
-    btn.addEventListener("click", () => removeFromCart(btn.dataset.remove));
+    btn.addEventListener("click", async () => {
+      try {
+        await removeFromCart(btn.dataset.remove);
+      } catch {
+        showMessage(pageErrorEl, t("cart.updateFailed"));
+      }
+    });
   });
 
   contentEl.querySelectorAll("[data-order]").forEach((btn) => {
@@ -124,6 +137,8 @@ async function handleOrderNow(productId) {
     await Products.incrementProductOffers(product.id).catch(() => {});
     await removeFromCart(productId);
     location.href = `dashboard-chat.html?id=${chatId}`;
+  } catch {
+    showMessage(document.getElementById("cart-page-error"), t("cart.orderFailed"));
   } finally {
     starting = false;
   }

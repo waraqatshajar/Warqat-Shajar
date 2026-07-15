@@ -116,8 +116,12 @@ function render() {
 }
 
 async function reload() {
-  [admins, allUsers] = await Promise.all([Admin.listAllAdmins(), Admin.listAllUsers()]);
-  render();
+  try {
+    [admins, allUsers] = await Promise.all([Admin.listAllAdmins(), Admin.listAllUsers()]);
+    render();
+  } catch {
+    contentEl.innerHTML = `<p class="empty-state">${t("admin.loadError")}</p>`;
+  }
 }
 
 async function main() {
