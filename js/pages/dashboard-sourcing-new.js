@@ -1,9 +1,9 @@
 import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
-import { Sourcing } from "../firebase.js";
+import { Sourcing, PhoneAttempts } from "../firebase.js";
 import { GOVERNORATES, mergeCategories, categoryLabel, onCategoriesChange } from "../constants.js";
-import { showMessage } from "../ui.js";
+import { showMessage, containsPhoneNumber } from "../ui.js";
 
 const categorySelect = document.getElementById("sf-category");
 const govGrid = document.getElementById("sf-governorates");
@@ -53,6 +53,18 @@ async function main() {
 
     if (!category || !quantity || selectedGovernorates.length === 0) {
       showMessage(errorEl, t("products.required"));
+      return;
+    }
+    if (containsPhoneNumber(notes)) {
+      showMessage(errorEl, t("products.phoneNotAllowed"));
+      PhoneAttempts.logAttempt({
+        uid: profile.uid,
+        name: profile.fullName,
+        context: "sourcingNotes",
+        contextId: null,
+        targetName: null,
+        snippet: notes,
+      }).catch(() => {});
       return;
     }
 

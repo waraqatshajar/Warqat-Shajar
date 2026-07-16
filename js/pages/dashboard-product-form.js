@@ -2,10 +2,10 @@
 // (ProductForm). renderProductForm() is called by both dashboard-product-new.js
 // (existingProduct = null) and dashboard-product-edit.js (existingProduct set).
 import { t, getLocale, onLocaleChange, refreshTranslations } from "../i18n.js";
-import { Products } from "../firebase.js";
+import { Products, PhoneAttempts } from "../firebase.js";
 import { mergeCategories, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { populateGovernorateSelect } from "./auth-shared.js";
-import { renderStarButtons, showMessage, renderImageInput } from "../ui.js";
+import { renderStarButtons, showMessage, renderImageInput, containsPhoneNumber } from "../ui.js";
 
 function toDateInputValue(value) {
   if (!value) return "";
@@ -184,6 +184,18 @@ export function renderProductForm(mountEl, profile, existingProduct) {
 
     if (!category || !governorate || !price || !quantity || !minOrderQuantity || !harvestDateValue) {
       showMessage(errorEl, t("products.required"));
+      return;
+    }
+    if (containsPhoneNumber(description)) {
+      showMessage(errorEl, t("products.phoneNotAllowed"));
+      PhoneAttempts.logAttempt({
+        uid: profile.uid,
+        name: profile.fullName,
+        context: "productDescription",
+        contextId: existingProduct?.id || null,
+        targetName: null,
+        snippet: description,
+      }).catch(() => {});
       return;
     }
 

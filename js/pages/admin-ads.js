@@ -173,8 +173,12 @@ function render() {
 }
 
 async function reload() {
-  ads = await Ads.listAllAds();
-  render();
+  try {
+    ads = await Ads.listAllAds();
+    render();
+  } catch {
+    contentEl.innerHTML = `<p class="empty-state">${t("admin.loadError")}</p>`;
+  }
 }
 
 async function main() {

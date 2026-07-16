@@ -1,15 +1,17 @@
 import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
-import { Products, Sourcing } from "../firebase.js";
+import { Products, Sourcing, Chat } from "../firebase.js";
 import { governorateLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
-import { badgeClass } from "../ui.js";
+import { badgeClass, btnClass, icon } from "../ui.js";
 import { initHelpTour } from "../help-tour.js";
 
 const welcomeEl = document.getElementById("welcome-heading");
 const contentEl = document.getElementById("overview-content");
 
 let myProducts = [];
+let currentProfile = null;
+let fulfilling = false;
 
 function renderOverview(profile) {
   welcomeEl.textContent = `${t("dashboardOverview.welcome")}, ${profile.fullName}`;
@@ -66,15 +68,47 @@ async function loadMatches(profile) {
             ${r.governorates.map((g) => `<span class="${badgeClass("outline")}">${governorateLabel(g, getLocale())}</span>`).join("")}
           </div>
         </div>
+        <div class="list-row-actions">
+          <button type="button" class="${btnClass("default", "sm")}" data-fulfill="${r.id}">${icon("message-square")} ${t("sourcing.respond")}</button>
+        </div>
       </div>
     `,
     )
     .join("");
+
+  listEl.querySelectorAll("[data-fulfill]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const request = requests.find((r) => r.id === btn.dataset.fulfill);
+      if (request) handleFulfillRequest(request);
+    });
+  });
+}
+
+async function handleFulfillRequest(request) {
+  if (fulfilling || !currentProfile) return;
+  fulfilling = true;
+  try {
+    const chatId = await Chat.findOrCreateChat({
+      currentUid: currentProfile.uid,
+      currentName: currentProfile.fullName,
+      currentPhone: currentProfile.phone,
+      otherUid: request.ownerId,
+      otherName: request.ownerName,
+      otherPhone: request.ownerPhone,
+      contextType: "sourcing",
+      contextId: request.id,
+      contextLabel: categoryLabelById(request.category, getLocale()),
+    });
+    location.href = `dashboard-chat.html?id=${chatId}`;
+  } finally {
+    fulfilling = false;
+  }
 }
 
 async function main() {
   await initLayout();
   const profile = await guardDashboard("dashboard.html");
+  currentProfile = profile;
 
   if (profile.accountType === "farmer") {
     Products.subscribeMyProducts(profile.uid, (products) => {

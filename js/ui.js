@@ -323,7 +323,7 @@ export function productCardHTML(product, categoryLabel, governorateLabel, perKgL
         </div>
         <p class="product-card-gov">${governorateLabel}</p>
         <p class="product-card-price">${product.price} ${perKgLabel}</p>
-        ${freshness ? `<span class="product-card-freshness freshness-${freshness.level}">${t(`freshness.${freshness.level}`)}</span>` : ""}
+        ${freshness ? `<span class="product-card-freshness" style="color:${freshness.color}">${t("freshness.label")}: ${freshness.score}/10</span>` : ""}
       </div>
     </a>
   `;
@@ -352,6 +352,7 @@ export function initReportDialog(mountEl, reportedUid, reportedName) {
             ).join("")}
           </div>
           <textarea class="textarea" id="${dialogId}-details" data-i18n-placeholder="report.detailsLabel" placeholder="${t("report.detailsLabel")}" rows="3"></textarea>
+          <p id="${dialogId}-error" class="error-text" style="display:none"></p>
         </div>
       </div>
       <div class="dialog-footer">
@@ -384,6 +385,20 @@ export function initReportDialog(mountEl, reportedUid, reportedName) {
     if (!authState.user || !authState.profile) return;
     const reason = mountEl.querySelector(`input[name="${dialogId}-reason"]:checked`)?.value || "quality";
     const details = mountEl.querySelector(`#${dialogId}-details`).value;
+    const errorEl = mountEl.querySelector(`#${dialogId}-error`);
+    showMessage(errorEl, "");
+    if (containsPhoneNumber(details)) {
+      showMessage(errorEl, t("report.phoneNotAllowed"));
+      PhoneAttempts.logAttempt({
+        uid: authState.user.uid,
+        name: authState.profile.fullName,
+        context: "reportDetails",
+        contextId: reportedUid,
+        targetName: reportedName,
+        snippet: details,
+      }).catch(() => {});
+      return;
+    }
     submitBtn.disabled = true;
     try {
       await Reports.createReport({

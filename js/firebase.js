@@ -118,6 +118,13 @@ export const Auth = {
       case "auth/wrong-password":
       case "auth/user-not-found":
         return "wrongCredentials";
+      case "auth/unauthorized-domain":
+        return "unauthorizedDomain";
+      case "auth/popup-blocked":
+        return "popupBlocked";
+      case "auth/popup-closed-by-user":
+      case "auth/cancelled-popup-request":
+        return "popupClosed";
       default:
         return "generic";
     }

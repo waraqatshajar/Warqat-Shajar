@@ -72,6 +72,7 @@ function openRateDialog(other) {
       <label class="label">${t("reviews.commentLabel")}</label>
       <textarea class="textarea" id="rate-comment" rows="3"></textarea>
     </div>
+    <p id="rate-error" class="error-text" style="display:none"></p>
     <div class="dialog-footer">
       <button type="button" class="${btnClass("default")}" id="rate-submit">${t("reviews.submit")}</button>
     </div>
@@ -92,13 +93,27 @@ function openRateDialog(other) {
     content.querySelector("#rate-stars").innerHTML = renderStarButtons(rating);
   });
   content.querySelector("#rate-submit").addEventListener("click", async () => {
+    const comment = content.querySelector("#rate-comment").value.trim();
+    const errorEl = content.querySelector("#rate-error");
+    if (containsPhoneNumber(comment)) {
+      showMessage(errorEl, t("chat.phoneNotAllowed"));
+      PhoneAttempts.logAttempt({
+        uid: profile.uid,
+        name: profile.fullName,
+        context: "review",
+        contextId: chatId,
+        targetName: other.name,
+        snippet: comment,
+      }).catch(() => {});
+      return;
+    }
     await Reviews.createReview({
       fromUid: profile.uid,
       fromName: profile.fullName,
       toUid: other.uid,
       chatId,
       rating,
-      comment: content.querySelector("#rate-comment").value.trim(),
+      comment,
     });
     reviewed = true;
     close();
@@ -203,6 +218,7 @@ function renderOfferForm() {
         <input class="input" id="of-price" type="number" min="0" step="0.01" placeholder="${t("chat.offerPrice")}" value="${initial.pricePerUnit ?? ""}">
       </div>
       <input class="input" id="of-notes" placeholder="${t("sourcing.notesLabel")}" value="${initial.deliveryNotes ?? ""}">
+      <p id="of-error" class="error-text" style="display:none"></p>
       <div class="offer-form-total" id="of-total">${t("chat.offerTotal")}: 0</div>
       <div style="display:flex;gap:0.5rem">
         <button type="submit" class="${btnClass("default", "sm")}">${t("chat.sendOffer")}</button>
@@ -235,7 +251,21 @@ function renderOfferForm() {
     const unit = offerFormMount.querySelector("#of-unit").value;
     const pricePerUnit = Number(priceEl.value);
     const deliveryNotes = offerFormMount.querySelector("#of-notes").value.trim();
+    const errorEl = offerFormMount.querySelector("#of-error");
+    showMessage(errorEl, "");
     if (!quantity || !pricePerUnit) return;
+    if (containsPhoneNumber(deliveryNotes)) {
+      showMessage(errorEl, t("chat.phoneNotAllowed"));
+      PhoneAttempts.logAttempt({
+        uid: profile.uid,
+        name: profile.fullName,
+        context: "offerNotes",
+        contextId: chatId,
+        targetName: otherParticipant().name,
+        snippet: deliveryNotes,
+      }).catch(() => {});
+      return;
+    }
 
     if (counterSource) {
       await Chat.respondToOffer(chatId, counterSource.messageId, "countered");

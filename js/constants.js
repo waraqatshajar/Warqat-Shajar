@@ -81,27 +81,43 @@ export const SHELF_LIFE_DAYS = {
 };
 export const DEFAULT_SHELF_LIFE_DAYS = 14;
 
-// Freshness stays at 100% for the first half of the assumed shelf life, then
-// declines linearly to a 20% floor by the time the shelf life is fully
-// elapsed (never reads as literally 0/worthless).
+// Freshness score out of 10 — stays at 10 for the first half of the assumed
+// shelf life, then steps down as time passes, but never drops below 7 (a
+// product is never shown as "bad", just gently less than perfect).
+export const FRESHNESS_MIN_SCORE = 7;
+export const FRESHNESS_MAX_SCORE = 10;
+
+// Score -> color, per product decision: 10/9 green, 8 yellow, 7 dark orange.
+export const FRESHNESS_COLORS = {
+  10: "#2e7d32",
+  9: "#43a047",
+  8: "#f2b705",
+  7: "#c1611a",
+};
+
 export function computeFreshness(harvestDate, categoryId) {
   const harvest = harvestDate?.toDate ? harvestDate.toDate() : new Date(harvestDate);
   const shelfLifeDays = SHELF_LIFE_DAYS[categoryId] || DEFAULT_SHELF_LIFE_DAYS;
   const daysSince = (Date.now() - harvest.getTime()) / (1000 * 60 * 60 * 24);
   const halfLife = shelfLifeDays / 2;
 
-  let pct;
+  let score;
   if (daysSince <= halfLife) {
-    pct = 100;
+    score = FRESHNESS_MAX_SCORE;
   } else if (daysSince >= shelfLifeDays) {
-    pct = 20;
+    score = FRESHNESS_MIN_SCORE;
   } else {
     const ratio = (daysSince - halfLife) / (shelfLifeDays - halfLife);
-    pct = Math.round(100 - ratio * 80);
+    const span = FRESHNESS_MAX_SCORE - FRESHNESS_MIN_SCORE;
+    score = FRESHNESS_MAX_SCORE - Math.round(ratio * span);
   }
 
-  const level = pct >= 80 ? "high" : pct >= 50 ? "medium" : "low";
-  return { pct, level, daysSince: Math.max(0, Math.floor(daysSince)), harvestDate: harvest };
+  return {
+    score,
+    color: FRESHNESS_COLORS[score],
+    daysSince: Math.max(0, Math.floor(daysSince)),
+    harvestDate: harvest,
+  };
 }
 
 export function governorateLabel(id, locale) {
