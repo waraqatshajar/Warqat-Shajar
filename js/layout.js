@@ -2,10 +2,10 @@
 // switcher, footer year. Markup itself is repeated per HTML file (see
 // partials below used when authoring pages); this module only wires
 // behavior against fixed IDs present identically on every page.
-import { authState, favoritesState, cartState, subscribe, isUserThemeDark, setUserThemeDark } from "./state.js";
-import { Auth, SiteSettings } from "./firebase.js";
+import { authState, favoritesState, cartState, notifState, subscribe, isUserThemeDark, setUserThemeDark } from "./state.js";
+import { Auth, SiteSettings, Notifications } from "./firebase.js";
 import { t, getLocale, setLocale, initI18n, onLocaleChange } from "./i18n.js";
-import { icon, renderAvatar, wireDropdown, renderIcons } from "./ui.js";
+import { icon, renderAvatar, wireDropdown, renderIcons, interpolate, showToast, btnClass } from "./ui.js";
 
 const SOCIAL_ICON_KEY = {
   facebook: "facebook",
@@ -116,6 +116,97 @@ function wireCartLink() {
   });
 }
 
+let notifSeenIds = null; // null until the first snapshot has been captured
+
+function formatNotifTime(ts) {
+  if (!ts?.toDate) return "";
+  return ts.toDate().toLocaleString(getLocale() === "ar" ? "ar-EG" : "en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function renderNotifPanel(panelEl, items) {
+  if (!panelEl) return;
+  const hasUnread = items.some((n) => !n.read);
+  panelEl.innerHTML = `
+    <div class="notif-panel">
+      <div class="notif-panel-header">
+        <strong style="font-size:0.85rem">${t("notifications.title")}</strong>
+        ${hasUnread ? `<button type="button" class="${btnClass("ghost", "sm")}" id="notif-mark-all">${t("notifications.markAllRead")}</button>` : ""}
+      </div>
+      ${
+        items.length === 0
+          ? `<p class="empty-state" style="font-size:0.8rem">${t("notifications.empty")}</p>`
+          : items
+              .map(
+                (n) => `
+            <a href="${n.link || "#"}" class="notif-row ${!n.read ? "is-unread" : ""}" data-notif-id="${n.id}">
+              <div class="notif-row-title">${t(`notif.${n.key}.title`)}</div>
+              <div class="notif-row-body">${interpolate(t(`notif.${n.key}.body`), n.params)}</div>
+              <div class="notif-row-time">${formatNotifTime(n.createdAt)}</div>
+            </a>
+          `,
+              )
+              .join("")
+      }
+    </div>
+  `;
+  panelEl.querySelectorAll("[data-notif-id]").forEach((row) => {
+    row.addEventListener("click", () => Notifications.markRead(row.dataset.notifId));
+  });
+  panelEl.querySelector("#notif-mark-all")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    Notifications.markAllRead(items);
+  });
+}
+
+function renderNotifBell() {
+  const mount = document.getElementById("header-notif-area");
+  if (!mount) return;
+
+  if (!authState.user) {
+    mount.innerHTML = "";
+    notifSeenIds = null;
+    return;
+  }
+
+  const items = notifState.items;
+
+  if (notifSeenIds === null) {
+    notifSeenIds = new Set(items.map((n) => n.id));
+  } else {
+    items.forEach((n) => {
+      if (!notifSeenIds.has(n.id)) {
+        notifSeenIds.add(n.id);
+        showToast({ key: n.key, params: n.params, link: n.link });
+      }
+    });
+  }
+
+  if (!mount.querySelector("#notif-trigger")) {
+    mount.innerHTML = `
+      <div class="dropdown">
+        <button type="button" id="notif-trigger" class="btn btn-ghost btn-icon icon-badge" aria-label="${t("notifications.title")}">
+          ${icon("bell")}
+          <span class="icon-badge-count" id="notif-badge" style="display:none">0</span>
+        </button>
+        <div class="dropdown-content" id="notif-content" style="inset-inline-end:0;inset-inline-start:auto"></div>
+      </div>
+    `;
+    wireDropdown(mount.querySelector("#notif-trigger"), mount.querySelector("#notif-content"));
+  }
+
+  const unreadCount = items.filter((n) => !n.read).length;
+  const badge = mount.querySelector("#notif-badge");
+  badge.textContent = unreadCount > 9 ? "9+" : String(unreadCount);
+  badge.style.display = unreadCount > 0 ? "flex" : "none";
+
+  renderNotifPanel(mount.querySelector("#notif-content"), items);
+}
+
 function updateThemeToggleIcon() {
   const btn = document.getElementById("theme-toggle");
   if (btn) btn.innerHTML = icon(isUserThemeDark() ? "sun" : "moon");
@@ -166,19 +257,32 @@ function applyBrandColor() {
 
 function renderFooterSocial() {
   const mount = document.getElementById("footer-social");
+  const phoneMount = document.getElementById("footer-phone");
+  const whatsappMount = document.getElementById("footer-whatsapp");
   if (!mount) return;
   SiteSettings.subscribeSocialLinks((data) => {
     const links = data.links || [];
-    if (links.length === 0) {
-      mount.innerHTML = "";
-      return;
+    mount.innerHTML =
+      links.length === 0
+        ? ""
+        : links
+            .map(
+              (l) =>
+                `<a class="footer-social-link" href="${l.url}" target="_blank" rel="noopener noreferrer" aria-label="${l.platform}">${icon(SOCIAL_ICON_KEY[l.platform?.toLowerCase()] || "link")}</a>`,
+            )
+            .join("");
+
+    if (phoneMount && data.phone) {
+      phoneMount.querySelector("span:last-child").textContent = data.phone;
     }
-    mount.innerHTML = links
-      .map(
-        (l) =>
-          `<a class="footer-social-link" href="${l.url}" target="_blank" rel="noopener noreferrer" aria-label="${l.platform}">${icon(SOCIAL_ICON_KEY[l.platform?.toLowerCase()] || "link")}</a>`,
-      )
-      .join("");
+    if (whatsappMount) {
+      if (data.whatsapp) {
+        whatsappMount.querySelector("span:last-child").textContent = data.whatsapp;
+        whatsappMount.style.display = "flex";
+      } else {
+        whatsappMount.style.display = "none";
+      }
+    }
   });
 }
 
@@ -194,6 +298,7 @@ export async function initLayout() {
   renderHeaderAuthArea();
   renderWishlistBadge();
   renderCartBadge();
+  renderNotifBell();
   applyLogo();
   applyBrandColor();
   renderFooterSocial();
@@ -201,8 +306,10 @@ export async function initLayout() {
     renderHeaderAuthArea();
     renderWishlistBadge();
     renderCartBadge();
+    renderNotifBell();
   });
   onLocaleChange(() => {
     renderHeaderAuthArea();
+    renderNotifBell();
   });
 }

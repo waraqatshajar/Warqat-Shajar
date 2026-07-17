@@ -10,6 +10,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
@@ -92,9 +94,25 @@ export const Auth = {
     return credential.user;
   },
 
+  // Popups get silently blocked by some mobile browsers/in-app webviews, so
+  // fall back to a full-page redirect flow there; completeGoogleRedirect()
+  // below picks the result back up once the page reloads after redirecting.
   async signInWithGoogle() {
-    const credential = await signInWithPopup(auth, googleProvider);
-    return credential.user;
+    try {
+      const credential = await signInWithPopup(auth, googleProvider);
+      return { user: credential.user, redirected: false };
+    } catch (error) {
+      if (error.code === "auth/popup-blocked" || error.code === "auth/operation-not-supported-in-this-environment") {
+        await signInWithRedirect(auth, googleProvider);
+        return { user: null, redirected: true };
+      }
+      throw error;
+    }
+  },
+
+  async completeGoogleRedirect() {
+    const credential = await getRedirectResult(auth);
+    return credential ? credential.user : null;
   },
 
   async signOutUser() {
@@ -125,6 +143,8 @@ export const Auth = {
       case "auth/popup-closed-by-user":
       case "auth/cancelled-popup-request":
         return "popupClosed";
+      case "auth/account-exists-with-different-credential":
+        return "accountExistsDifferentCredential";
       default:
         return "generic";
     }
@@ -157,6 +177,7 @@ export const Profile = {
       ratingCount: 0,
       status: "active",
       suspendedUntil: null,
+      violationCount: 0,
     });
   },
 
@@ -167,6 +188,27 @@ export const Profile = {
 
   subscribeUserProfile(uid, callback) {
     return onSnapshot(userDocRef(uid), (snap) => callback(snap.exists() ? snap.data() : null));
+  },
+
+  // Called every time a user's own client blocks a phone-number-sharing
+  // attempt. Every 3rd strike self-suspends the account for 24h — see the
+  // matching firestore.rules carve-out that allows only this exact
+  // active->suspended (and, separately, the expiry self-heal below) transition.
+  async recordViolation(uid) {
+    const ref = userDocRef(uid);
+    await updateDoc(ref, { violationCount: increment(1) });
+    const snap = await getDoc(ref);
+    const count = snap.data()?.violationCount ?? 0;
+    if (count > 0 && count % 3 === 0) {
+      await updateDoc(ref, {
+        status: "suspended",
+        suspendedUntil: Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)),
+      });
+    }
+  },
+
+  async clearExpiredSuspension(uid) {
+    await updateDoc(userDocRef(uid), { status: "active", suspendedUntil: null });
   },
 };
 
@@ -457,12 +499,28 @@ export const Chat = {
     return perChat.flat().sort((a, b) => (b.createdAt?.toMillis() ?? 0) - (a.createdAt?.toMillis() ?? 0));
   },
 
-  // Admin-only: every chat, for the moderation/oversight view. Read-only —
-  // never call anything here that writes to the chat or its messages, so
-  // browsing a conversation stays invisible to its participants.
+  // Admin-only: every chat, for the moderation/oversight view. Just browsing
+  // a conversation stays invisible to its participants (read-only) — the one
+  // deliberate exception is lockChat() below, a visible moderation action.
   async listAllChats() {
     const snap = await getDocs(query(chatsCol, orderBy("lastMessageAt", "desc")));
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  },
+
+  // Admin-only "Stop Conversation": blocks further messages from the two
+  // participants (enforced in firestore.rules) and posts a visible system
+  // warning so both sides know why. Deleting the chat afterwards, if needed,
+  // already goes through the existing admin-only chats delete rule.
+  async lockChat(chatId) {
+    await updateDoc(doc(db, "chats", chatId), { locked: true });
+    await addDoc(collection(db, "chats", chatId, "messages"), {
+      senderId: "system",
+      type: "system",
+      systemKey: "chat.systemLockedWarning",
+      text: null,
+      offer: null,
+      createdAt: serverTimestamp(),
+    });
   },
 };
 
@@ -484,6 +542,7 @@ export const PhoneAttempts = {
       snippet,
       createdAt: serverTimestamp(),
     });
+    await Profile.recordViolation(uid);
   },
 
   async listAll() {
@@ -819,7 +878,7 @@ const siteContentRef = doc(db, "settings", "siteContent");
 const DEFAULT_SITE_THEME = { primaryColor: null };
 const siteThemeRef = doc(db, "settings", "siteTheme");
 
-const DEFAULT_SOCIAL_LINKS = { links: [] };
+const DEFAULT_SOCIAL_LINKS = { links: [], phone: null, whatsapp: null, email: null, policyLink: null };
 const socialLinksRef = doc(db, "settings", "socialLinks");
 
 const DEFAULT_AD_PLACEMENTS = {};
@@ -897,6 +956,14 @@ export const SiteSettings = {
     await setDoc(socialLinksRef, { links }, { merge: true });
   },
 
+  async updateContactInfo({ phone, whatsapp, email, policyLink }) {
+    await setDoc(
+      socialLinksRef,
+      { phone: phone || null, whatsapp: whatsapp || null, email: email || null, policyLink: policyLink || null },
+      { merge: true },
+    );
+  },
+
   async getAdPlacementsOnce() {
     const snap = await getDoc(adPlacementsRef);
     return snap.exists() ? { ...DEFAULT_AD_PLACEMENTS, ...snap.data() } : DEFAULT_AD_PLACEMENTS;
@@ -946,5 +1013,63 @@ export const SiteSettings = {
       ? [...new Set([...config.hidden, id])]
       : config.hidden.filter((h) => h !== id);
     await setDoc(categoriesConfigRef, { hidden: nextHidden }, { merge: true });
+  },
+};
+
+// ===========================================================================
+// Admin team chat — one shared room every admin can read/post in, never
+// exposed to regular users (see the isAdmin()-gated firestore.rules match).
+// ===========================================================================
+const adminChatsCol = collection(db, "adminChats");
+
+export const AdminChat = {
+  async sendMessage({ senderId, senderName, text, fileUrl, fileName, fileType }) {
+    await addDoc(adminChatsCol, {
+      senderId,
+      senderName,
+      text: text || null,
+      fileUrl: fileUrl || null,
+      fileName: fileName || null,
+      fileType: fileType || null,
+      createdAt: serverTimestamp(),
+    });
+  },
+
+  subscribeMessages(callback) {
+    const q = query(adminChatsCol, orderBy("createdAt", "asc"));
+    return onSnapshot(q, (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
+  },
+};
+
+// ===========================================================================
+// Notifications — any user's client may write into another user's inbox
+// (e.g. a buyer's offer notifying the farmer); see firestore.rules for the
+// narrow, informational-only field allowlist that makes this safe.
+// ===========================================================================
+const notificationsCol = collection(db, "notifications");
+
+export const Notifications = {
+  async create({ uid, key, params, link }) {
+    await addDoc(notificationsCol, {
+      uid,
+      key,
+      params: params ?? {},
+      link: link ?? null,
+      read: false,
+      createdAt: serverTimestamp(),
+    }).catch(() => {});
+  },
+
+  subscribeMine(uid, callback) {
+    const q = query(notificationsCol, where("uid", "==", uid), orderBy("createdAt", "desc"), limit(30));
+    return onSnapshot(q, (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }))), () => callback([]));
+  },
+
+  async markRead(id) {
+    await updateDoc(doc(db, "notifications", id), { read: true });
+  },
+
+  async markAllRead(notifs) {
+    await Promise.all(notifs.filter((n) => !n.read).map((n) => updateDoc(doc(db, "notifications", n.id), { read: true })));
   },
 };

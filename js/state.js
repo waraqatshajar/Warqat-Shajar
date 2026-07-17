@@ -1,6 +1,6 @@
 // Module-level singleton replacing AuthContext + FavoritesContext (React).
 // Ported 1:1 from src/contexts/{auth-context,favorites-context}.tsx.
-import { auth, db, Auth, Admin, Favorites, Cart, OWNER_EMAIL } from "./firebase.js";
+import { auth, db, Auth, Admin, Favorites, Cart, Profile, Notifications, OWNER_EMAIL } from "./firebase.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const listeners = new Set();
@@ -21,6 +21,11 @@ export const favoritesState = {
 
 export const cartState = {
   items: new Map(), // productId -> quantity
+  loading: false,
+};
+
+export const notifState = {
+  items: [],
   loading: false,
 };
 
@@ -72,6 +77,7 @@ let unsubProfile = null;
 let unsubAdmin = null;
 let unsubFavorites = null;
 let unsubCart = null;
+let unsubNotif = null;
 let bootstrapAttempted = false;
 
 Auth.onChange((nextUser) => {
@@ -81,7 +87,8 @@ Auth.onChange((nextUser) => {
   if (unsubAdmin) unsubAdmin();
   if (unsubFavorites) unsubFavorites();
   if (unsubCart) unsubCart();
-  unsubProfile = unsubAdmin = unsubFavorites = unsubCart = null;
+  if (unsubNotif) unsubNotif();
+  unsubProfile = unsubAdmin = unsubFavorites = unsubCart = unsubNotif = null;
 
   if (!nextUser) {
     authState.profile = null;
@@ -91,6 +98,7 @@ Auth.onChange((nextUser) => {
     authState.loading = false;
     favoritesState.favoriteIds = new Set();
     cartState.items = new Map();
+    notifState.items = [];
     recomputeAdminMode(false);
     notify();
     return;
@@ -105,6 +113,10 @@ Auth.onChange((nextUser) => {
       authState.profile = snap.exists() ? snap.data() : null;
       authState.loading = false;
       notify();
+      const p = authState.profile;
+      if (p?.status === "suspended" && p.suspendedUntil?.toDate?.() <= new Date()) {
+        Profile.clearExpiredSuspension(nextUser.uid).catch(() => {});
+      }
     },
     () => {
       authState.profile = null;
@@ -139,6 +151,13 @@ Auth.onChange((nextUser) => {
   unsubCart = Cart.subscribeCart(nextUser.uid, (items) => {
     cartState.items = new Map(items.map((i) => [i.productId, i.quantity]));
     cartState.loading = false;
+    notify();
+  });
+
+  notifState.loading = true;
+  unsubNotif = Notifications.subscribeMine(nextUser.uid, (items) => {
+    notifState.items = items;
+    notifState.loading = false;
     notify();
   });
 

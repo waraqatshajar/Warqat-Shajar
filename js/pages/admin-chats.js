@@ -75,6 +75,9 @@ function renderMessages() {
                 <div class="chat-bubble">${m.text}</div>
               </div>`;
             }
+            if (m.type === "system") {
+              return `<div class="chat-row"><p class="text-muted" style="text-align:center;font-size:0.8rem">${t(m.systemKey)}</p></div>`;
+            }
             const o = m.offer;
             return `
             <div class="chat-row">
@@ -100,13 +103,26 @@ function renderViewer() {
         <h1 class="heading" style="font-size:1.25rem">${Object.values(activeChat.participantNames || {}).join(" / ")}</h1>
         <div class="text-muted" style="font-size:0.85rem">${activeChat.contextLabel || ""}</div>
       </div>
-      <span class="${badgeClass("outline")}">${t("chats.viewOnly")}</span>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+        <span class="${badgeClass("outline")}">${t("chats.viewOnly")}</span>
+        ${
+          activeChat.locked
+            ? `<span class="${badgeClass("destructive")}">${t("chats.locked")}</span>`
+            : `<button type="button" class="${btnClass("destructive", "sm")}" id="lock-chat-btn">${t("chats.lockChat")}</button>`
+        }
+      </div>
     </div>
     <div class="chat-shell" style="margin-top:1rem">
       <div class="chat-messages" id="admin-chat-messages"></div>
     </div>
   `;
   contentEl.querySelector("#back-btn").addEventListener("click", closeChat);
+  contentEl.querySelector("#lock-chat-btn")?.addEventListener("click", async () => {
+    if (!confirm(t("chats.lockChatConfirm"))) return;
+    await Chat.lockChat(activeChat.id);
+    activeChat.locked = true;
+    renderViewer();
+  });
   renderMessages();
 }
 

@@ -1,7 +1,7 @@
 import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
-import { Products, Sourcing, Chat } from "../firebase.js";
+import { Products, Sourcing, Chat, Notifications } from "../firebase.js";
 import { governorateLabel, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { badgeClass, btnClass, icon } from "../ui.js";
 import { initHelpTour } from "../help-tour.js";
@@ -42,11 +42,39 @@ function renderOverview(profile) {
     </div>
     <div id="matching-sourcing" style="margin-top:2rem">
       <h2 class="heading" style="font-size:1.1rem">${t("dashboardOverview.matchingSourcing")}</h2>
-      <div id="matching-sourcing-list" class="card" style="margin-top:0.75rem;padding:0.5rem 1rem"></div>
+      <div id="matching-sourcing-list" class="sourcing-match-grid" style="margin-top:0.75rem"></div>
     </div>
   `;
 
   loadMatches(profile);
+}
+
+function timeAgo(ts) {
+  if (!ts?.toDate) return "";
+  const days = Math.max(0, Math.floor((Date.now() - ts.toDate().getTime()) / (1000 * 60 * 60 * 24)));
+  return t("freshness.daysAgo").replace("{days}", days);
+}
+
+function renderSourcingMatchCard(r) {
+  return `
+    <div class="card sourcing-match-card">
+      <div class="sourcing-match-top">
+        <span class="${badgeClass("default")}">${categoryLabelById(r.category, getLocale())}</span>
+        <span class="text-muted" style="font-size:0.75rem">${timeAgo(r.createdAt)}</span>
+      </div>
+      <div class="sourcing-match-qty">${t("sourcing.quantityLabel")}: ${r.quantity}</div>
+      ${
+        r.priceMin
+          ? `<div class="sourcing-match-meta">${t("sourcing.priceRange")}: ${r.priceMin}–${r.priceMax ?? ""}</div>`
+          : ""
+      }
+      <div class="sourcing-match-meta">${t("sourcing.postedBy")}: ${r.ownerName}</div>
+      <div class="sourcing-match-govs">
+        ${r.governorates.map((g) => `<span class="${badgeClass("outline")}">${governorateLabel(g, getLocale())}</span>`).join("")}
+      </div>
+      <button type="button" class="${btnClass("default", "sm")}" data-fulfill="${r.id}" style="margin-top:0.25rem">${icon("message-square")} ${t("sourcing.respond")}</button>
+    </div>
+  `;
 }
 
 async function loadMatches(profile) {
@@ -57,24 +85,7 @@ async function loadMatches(profile) {
     listEl.innerHTML = `<p class="empty-state">${t("sourcing.noRequests")}</p>`;
     return;
   }
-  listEl.innerHTML = requests
-    .map(
-      (r) => `
-      <div class="list-row">
-        <div class="list-row-main">
-          <div style="font-weight:600">${categoryLabelById(r.category, getLocale())}</div>
-          <div class="text-muted" style="font-size:0.875rem">${r.quantity} — ${t("sourcing.postedBy")}: ${r.ownerName}</div>
-          <div style="display:flex;flex-wrap:wrap;gap:0.375rem;margin-top:0.375rem">
-            ${r.governorates.map((g) => `<span class="${badgeClass("outline")}">${governorateLabel(g, getLocale())}</span>`).join("")}
-          </div>
-        </div>
-        <div class="list-row-actions">
-          <button type="button" class="${btnClass("default", "sm")}" data-fulfill="${r.id}">${icon("message-square")} ${t("sourcing.respond")}</button>
-        </div>
-      </div>
-    `,
-    )
-    .join("");
+  listEl.innerHTML = requests.map(renderSourcingMatchCard).join("");
 
   listEl.querySelectorAll("[data-fulfill]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -99,6 +110,7 @@ async function handleFulfillRequest(request) {
       contextId: request.id,
       contextLabel: categoryLabelById(request.category, getLocale()),
     });
+    Notifications.create({ uid: request.ownerId, key: "sourcingResponse", params: { name: currentProfile.fullName } });
     location.href = `dashboard-chat.html?id=${chatId}`;
   } finally {
     fulfilling = false;

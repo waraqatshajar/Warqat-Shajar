@@ -1,7 +1,7 @@
 import { initLayout } from "../layout.js";
 import { guardAdmin } from "../admin-shell.js";
 import { t, onLocaleChange } from "../i18n.js";
-import { Admin, OWNER_EMAIL } from "../firebase.js";
+import { Admin, OWNER_EMAIL, Notifications } from "../firebase.js";
 import { authState } from "../state.js";
 import { badgeClass, btnClass, icon } from "../ui.js";
 
@@ -72,6 +72,7 @@ function render() {
       const days = prompt(t("admin.suspendDays"), "30");
       if (!days) return;
       await Admin.setUserStatus(btn.dataset.suspend, "suspended", Number(days));
+      Notifications.create({ uid: btn.dataset.suspend, key: "accountSuspended" });
       await reload();
     });
   });
@@ -85,6 +86,7 @@ function render() {
   contentEl.querySelectorAll("[data-reactivate]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       await Admin.setUserStatus(btn.dataset.reactivate, "active");
+      Notifications.create({ uid: btn.dataset.reactivate, key: "accountReactivated" });
       await reload();
     });
   });
