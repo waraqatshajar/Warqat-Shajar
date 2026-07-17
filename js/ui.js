@@ -163,13 +163,20 @@ export function interpolate(str, params) {
   return Object.entries(params).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, v), str);
 }
 
+// Kept in sync with the admin-configurable widget icon (falls back to the
+// main logo, then this static default) so toasts match the floating button.
+let toastBadgeUrl = "images/logo-icon.png";
+SiteSettings.subscribeSiteImages((images) => {
+  toastBadgeUrl = images.widgetIconUrl || images.logoUrl || "images/logo-icon.png";
+});
+
 export function showToast({ key, params, link }) {
   const container = getToastContainer();
   const toast = document.createElement("div");
   toast.className = "toast is-clickable";
   toast.innerHTML = `
     <div class="toast-leaf-accent"></div>
-    <img src="images/logo-icon.png" class="toast-badge" alt="">
+    <img src="${toastBadgeUrl}" class="toast-badge" alt="">
     <div class="toast-body">
       <div class="toast-title">${t(`notif.${key}.title`)}<span class="toast-dot"></span></div>
       <div class="toast-subtitle">${interpolate(t(`notif.${key}.body`), params)}</div>

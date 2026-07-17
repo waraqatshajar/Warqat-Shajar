@@ -588,6 +588,8 @@
     "uploading": "Uploading...",
     "saved": "Saved",
     "logoTitle": "Logo",
+    "widgetIconTitle": "Floating Contact Button & Notification Icon",
+    "widgetIconHint": "The image shown inside the floating button and the round badge on toast notifications — leave blank to reuse the main logo.",
     "colorTitle": "Brand Color",
     "contentTitle": "Homepage Text",
     "fieldHeroBadge": "Hero badge text",

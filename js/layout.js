@@ -353,6 +353,10 @@ function renderContactWidget() {
       contactWidgetData = data;
       renderContactWidgetPanel();
     });
+    SiteSettings.subscribeSiteImages((images) => {
+      const url = images.widgetIconUrl || images.logoUrl;
+      if (url) trigger.querySelector("img").src = url;
+    });
     return;
   }
   renderContactWidgetPanel();

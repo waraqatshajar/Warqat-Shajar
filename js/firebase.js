@@ -869,6 +869,8 @@ export const Admin = {
 const DEFAULT_SITE_IMAGES = {
   heroImages: ["images/hero-farmer.jpg"],
   categoryImages: {},
+  logoUrl: null,
+  widgetIconUrl: null,
 };
 const siteImagesRef = doc(db, "settings", "siteImages");
 
@@ -921,6 +923,12 @@ export const SiteSettings = {
 
   async updateLogoUrl(url) {
     await setDoc(siteImagesRef, { logoUrl: url }, { merge: true });
+  },
+
+  // Falls back to the main logo (then the static default already baked into
+  // the floating widget/toast markup) if the admin never set a dedicated one.
+  async updateWidgetIconUrl(url) {
+    await setDoc(siteImagesRef, { widgetIconUrl: url || null }, { merge: true });
   },
 
   async getSiteContentOnce() {
