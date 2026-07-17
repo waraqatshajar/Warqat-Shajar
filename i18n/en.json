@@ -3,6 +3,14 @@
     "name": "Waraqat Shajar",
     "tagline": "Egypt's Agricultural Marketplace"
   },
+  "contactWidget": {
+    "title": "Contact Us",
+    "whatsapp": "WhatsApp",
+    "liveChat": "Live Chat",
+    "call": "Call Us",
+    "email": "Email",
+    "policy": "Platform Policy"
+  },
   "about": {
     "heroBadge": "Our Story",
     "heroHeadline": "No Middleman, A Fair Price, From the Heart of Egypt's Land",
@@ -602,6 +610,8 @@
     "contactTitle": "Contact Info",
     "contactPhoneLabel": "Phone number (shown directly in the footer)",
     "contactWhatsappLabel": "WhatsApp number (shown directly in the footer)",
+    "contactEmailLabel": "Contact email address",
+    "contactPolicyLabel": "Platform policy link (leave blank to use the default terms page)",
     "socialTitle": "Social Media",
     "socialAdd": "Add",
     "noSocialLinks": "No social links yet",

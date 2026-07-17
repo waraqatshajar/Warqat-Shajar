@@ -286,6 +286,70 @@ function renderFooterSocial() {
   });
 }
 
+// Local EG numbers ("0111...") need the country code and no leading zero to
+// work as a wa.me deep link; numbers already given in international form are
+// left as-is.
+function toWhatsappDigits(raw) {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("20")) return digits;
+  if (digits.startsWith("0")) return `20${digits.slice(1)}`;
+  return digits;
+}
+
+let contactWidgetBuilt = false;
+let contactWidgetData = { links: [], phone: null, whatsapp: null, email: null, policyLink: null };
+
+function renderContactWidgetPanel() {
+  const panel = document.getElementById("contact-widget-panel");
+  if (!panel) return;
+  const data = contactWidgetData;
+  const waDigits = data.whatsapp ? toWhatsappDigits(data.whatsapp) : null;
+  const items = [
+    waDigits && { icon: "whatsapp", label: t("contactWidget.whatsapp"), href: `https://wa.me/${waDigits}`, external: true },
+    { icon: "message-square", label: t("contactWidget.liveChat"), href: "contact.html" },
+    data.phone && { icon: "phone", label: t("contactWidget.call"), href: `tel:${data.phone}` },
+    data.email && { icon: "mail", label: t("contactWidget.email"), href: `mailto:${data.email}` },
+    { icon: "book-open", label: t("contactWidget.policy"), href: data.policyLink || "terms.html" },
+  ].filter(Boolean);
+
+  panel.innerHTML = `
+    <div class="contact-widget-header">${t("contactWidget.title")}</div>
+    ${items
+      .map(
+        (it) => `
+      <a class="contact-widget-item" href="${it.href}" ${it.external ? 'target="_blank" rel="noopener noreferrer"' : ""}>
+        <span class="contact-widget-item-icon">${icon(it.icon)}</span>
+        <span>${it.label}</span>
+        ${icon("chevron-down", "contact-widget-chevron")}
+      </a>
+    `,
+      )
+      .join("")}
+  `;
+}
+
+function renderContactWidget() {
+  if (!contactWidgetBuilt) {
+    contactWidgetBuilt = true;
+    const wrapper = document.createElement("div");
+    wrapper.className = "contact-widget";
+    wrapper.innerHTML = `
+      <div class="contact-widget-panel" id="contact-widget-panel"></div>
+      <button type="button" class="contact-widget-fab" id="contact-widget-trigger" aria-label="${t("contactWidget.title")}">
+        <img src="images/logo-icon.png" alt="">
+      </button>
+    `;
+    document.body.appendChild(wrapper);
+    wireDropdown(wrapper.querySelector("#contact-widget-trigger"), wrapper.querySelector("#contact-widget-panel"));
+    SiteSettings.subscribeSocialLinks((data) => {
+      contactWidgetData = data;
+      renderContactWidgetPanel();
+    });
+    return;
+  }
+  renderContactWidgetPanel();
+}
+
 export async function initLayout() {
   await initI18n();
   renderIcons(document);
@@ -302,6 +366,7 @@ export async function initLayout() {
   applyLogo();
   applyBrandColor();
   renderFooterSocial();
+  renderContactWidget();
   subscribe(() => {
     renderHeaderAuthArea();
     renderWishlistBadge();
@@ -311,5 +376,6 @@ export async function initLayout() {
   onLocaleChange(() => {
     renderHeaderAuthArea();
     renderNotifBell();
+    renderContactWidget();
   });
 }

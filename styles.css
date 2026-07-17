@@ -3209,3 +3209,126 @@ main {
   color: var(--muted-foreground);
   margin-top: 0.2rem;
 }
+
+/* ---------------------------------------------------------------------- */
+/* Floating contact widget (opposite corner from the toast stack)         */
+/* ---------------------------------------------------------------------- */
+.contact-widget {
+  position: fixed;
+  bottom: 1.25rem;
+  inset-inline-start: 1.25rem;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.contact-widget-fab {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(160deg, var(--primary), color-mix(in srgb, var(--primary) 60%, #0a2e12));
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.contact-widget-fab:hover {
+  transform: scale(1.06);
+}
+
+.contact-widget-fab img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.contact-widget-panel {
+  display: none;
+  margin-bottom: 0.75rem;
+  width: 17rem;
+  max-width: calc(100vw - 2.5rem);
+  border-radius: var(--radius-xl);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3), inset 0 0 0 1px color-mix(in srgb, var(--foreground) 10%, transparent);
+  padding: 0.6rem;
+}
+
+.contact-widget-panel.is-open {
+  display: block;
+}
+
+.contact-widget-header {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.6rem 0.6rem;
+}
+
+.contact-widget-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--popover-foreground);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  margin-bottom: 0.4rem;
+}
+
+.contact-widget-item:last-child {
+  margin-bottom: 0;
+}
+
+.contact-widget-item:hover {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.contact-widget-item-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-widget-item-icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.contact-widget-item span:nth-child(2) {
+  flex: 1;
+}
+
+.contact-widget-chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted-foreground);
+  transform: rotate(90deg);
+  flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .contact-widget {
+    inset-inline-start: 1rem;
+    bottom: 1rem;
+  }
+
+  .contact-widget-fab {
+    width: 3rem;
+    height: 3rem;
+  }
+}
