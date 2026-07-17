@@ -33,6 +33,18 @@ async function main() {
   const form = document.getElementById("register-form");
   const formError = document.getElementById("form-error");
   const submitBtn = document.getElementById("submit-btn");
+  const googleBtn = document.getElementById("google-btn");
+
+  try {
+    const redirectedUser = await Auth.completeGoogleRedirect();
+    if (redirectedUser) {
+      const existingProfile = await Profile.getUserProfile(redirectedUser.uid);
+      location.href = existingProfile ? "index.html" : "complete-profile.html";
+      return;
+    }
+  } catch (error) {
+    showMessage(formError, t(`auth.errors.${Auth.getAuthErrorKey(error)}`));
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -86,14 +98,18 @@ async function main() {
     }
   });
 
-  document.getElementById("google-btn").addEventListener("click", async () => {
+  googleBtn.addEventListener("click", async () => {
     showMessage(formError, "");
+    googleBtn.disabled = true;
     try {
-      const user = await Auth.signInWithGoogle();
+      const { user, redirected } = await Auth.signInWithGoogle();
+      if (redirected) return;
       const existingProfile = await Profile.getUserProfile(user.uid);
       location.href = existingProfile ? "index.html" : "complete-profile.html";
     } catch (error) {
       showMessage(formError, t(`auth.errors.${Auth.getAuthErrorKey(error)}`));
+    } finally {
+      googleBtn.disabled = false;
     }
   });
 }

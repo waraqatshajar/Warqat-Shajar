@@ -99,6 +99,28 @@ function render() {
       <button type="submit" class="${btnClass("default")}" style="align-self:flex-start">${t("branding.saveChanges", "Save")}</button>
     </form>
 
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.contactTitle")}</h2>
+    <div class="card form-stack" style="padding:1.5rem;margin-top:0.75rem">
+      <div class="field">
+        <label class="label" for="contact-phone-input">${t("branding.contactPhoneLabel")}</label>
+        <input class="input force-ltr" dir="ltr" id="contact-phone-input" value="${socialLinks.phone || ""}">
+      </div>
+      <div class="field">
+        <label class="label" for="contact-whatsapp-input">${t("branding.contactWhatsappLabel")}</label>
+        <input class="input force-ltr" dir="ltr" id="contact-whatsapp-input" value="${socialLinks.whatsapp || ""}">
+      </div>
+      <div class="field">
+        <label class="label" for="contact-email-input">${t("branding.contactEmailLabel")}</label>
+        <input class="input force-ltr" dir="ltr" type="email" id="contact-email-input" value="${socialLinks.email || ""}">
+      </div>
+      <div class="field">
+        <label class="label" for="contact-policy-input">${t("branding.contactPolicyLabel")}</label>
+        <input class="input force-ltr" dir="ltr" id="contact-policy-input" placeholder="terms.html" value="${socialLinks.policyLink || ""}">
+      </div>
+      <span id="contact-saved" class="success-text" style="display:none">${t("branding.saved")}</span>
+      <button type="button" class="${btnClass("default", "sm")}" id="save-contact-btn" style="align-self:flex-start">${t("branding.saveChanges", "Save")}</button>
+    </div>
+
     <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.socialTitle", "Social Media")}</h2>
     <div class="card" style="padding:1.5rem;margin-top:0.75rem">
       <div id="social-list" style="display:flex;flex-direction:column;gap:0.5rem"></div>
@@ -228,6 +250,18 @@ function render() {
     await SiteSettings.updateSiteContent("ar", arPatch);
     await SiteSettings.updateSiteContent("en", enPatch);
     const saved = contentEl.querySelector("#about-content-saved");
+    saved.style.display = "inline";
+    setTimeout(() => (saved.style.display = "none"), 2500);
+  });
+
+  // Site contact info (phone/whatsapp, shown directly in the footer)
+  contentEl.querySelector("#save-contact-btn").addEventListener("click", async () => {
+    const phone = contentEl.querySelector("#contact-phone-input").value.trim();
+    const whatsapp = contentEl.querySelector("#contact-whatsapp-input").value.trim();
+    const email = contentEl.querySelector("#contact-email-input").value.trim();
+    const policyLink = contentEl.querySelector("#contact-policy-input").value.trim();
+    await SiteSettings.updateContactInfo({ phone, whatsapp, email, policyLink });
+    const saved = contentEl.querySelector("#contact-saved");
     saved.style.display = "inline";
     setTimeout(() => (saved.style.display = "none"), 2500);
   });

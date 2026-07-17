@@ -2,7 +2,7 @@
 // (ProductForm). renderProductForm() is called by both dashboard-product-new.js
 // (existingProduct = null) and dashboard-product-edit.js (existingProduct set).
 import { t, getLocale, onLocaleChange, refreshTranslations } from "../i18n.js";
-import { Products, PhoneAttempts } from "../firebase.js";
+import { Products, PhoneAttempts, Notifications } from "../firebase.js";
 import { mergeCategories, categoryLabelById, onCategoriesChange } from "../constants.js";
 import { populateGovernorateSelect } from "./auth-shared.js";
 import { renderStarButtons, showMessage, renderImageInput, containsPhoneNumber } from "../ui.js";
@@ -223,6 +223,11 @@ export function renderProductForm(mountEl, profile, existingProduct) {
           ownerId: profile.uid,
           ownerName: profile.fullName,
           ownerPhone: profile.phone,
+        });
+        Notifications.create({
+          uid: profile.uid,
+          key: "productAdded",
+          params: { product: categoryLabelById(category, getLocale()) },
         });
       }
       location.href = "dashboard-products.html";

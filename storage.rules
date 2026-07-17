@@ -29,6 +29,13 @@ service firebase.storage {
         request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
     }
 
+    match /adminChatFiles/{allPaths=**} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() &&
+        request.resource.size < 20 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

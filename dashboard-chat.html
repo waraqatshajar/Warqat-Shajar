@@ -42,6 +42,7 @@
             <span class="icon-badge-count" id="header-wishlist-badge" style="display:none">0</span>
           </a>
         </div>
+        <div id="header-notif-area"></div>
         <div id="header-auth-area"></div>
       </div>
     </div>
@@ -68,6 +69,7 @@
           <div class="chat-messages" id="chat-messages"></div>
           <div id="offer-form-mount"></div>
           <p id="chat-error" class="error-text" style="display:none;padding:0 0.75rem"></p>
+          <p id="chat-locked-notice" class="error-text" style="display:none;padding:0 0.75rem" data-i18n="chats.locked">This conversation has been stopped</p>
           <div class="chat-composer">
             <button type="button" class="btn btn-outline btn-sm" id="make-offer-btn" data-i18n="chat.makeOffer">Send Offer</button>
             <input class="input" id="chat-text-input" data-i18n-placeholder="chat.typeMessage" placeholder="Type a message...">
@@ -105,7 +107,8 @@
           <span class="logo-wordmark" style="color:#eef2ec" data-i18n="brand.name">Waraqat Shajar</span>
         </a>
         <p style="font-size:0.875rem;color:#c9d6c8;margin-top:0.5rem" data-i18n="footer.tagline">Egypt's agricultural marketplace</p>
-        <div class="footer-phone force-ltr"><span data-icon="phone"></span> <span>19XXX</span></div>
+        <div class="footer-phone force-ltr" id="footer-phone"><span data-icon="phone"></span> <span>19XXX</span></div>
+        <div class="footer-phone force-ltr" id="footer-whatsapp" style="display:none"><span data-icon="whatsapp"></span> <span></span></div>
         <div class="footer-social" id="footer-social"></div>
       </div>
     </div>

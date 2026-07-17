@@ -1,7 +1,7 @@
 import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, onLocaleChange } from "../i18n.js";
-import { Chat, Products, Reviews, PhoneAttempts } from "../firebase.js";
+import { Chat, Products, Reviews, PhoneAttempts, Notifications } from "../firebase.js";
 import { authState } from "../state.js";
 import { btnClass, badgeClass, icon, initReportDialog, renderStarButtons, showMessage, containsPhoneNumber } from "../ui.js";
 
@@ -115,6 +115,7 @@ function openRateDialog(other) {
       rating,
       comment,
     });
+    Notifications.create({ uid: other.uid, key: "newReview", params: { name: profile.fullName } });
     reviewed = true;
     close();
     renderRateMount(other);
@@ -128,6 +129,9 @@ function renderMessages() {
       : messages
           .map((m) => {
             const isMine = m.senderId === profile.uid;
+            if (m.type === "system") {
+              return `<div class="chat-row"><p class="text-muted" style="text-align:center;font-size:0.8rem">${t(m.systemKey)}</p></div>`;
+            }
             if (m.type === "text") {
               return `<div class="chat-row ${isMine ? "is-mine" : ""}"><div class="chat-bubble">${m.text}</div></div>`;
             }
@@ -173,7 +177,11 @@ function renderMessages() {
     btn.addEventListener("click", () => acceptOffer(btn.dataset.accept));
   });
   messagesEl.querySelectorAll("[data-decline]").forEach((btn) => {
-    btn.addEventListener("click", () => Chat.respondToOffer(chatId, btn.dataset.decline, "declined"));
+    btn.addEventListener("click", async () => {
+      await Chat.respondToOffer(chatId, btn.dataset.decline, "declined");
+      const offerMsg = messages.find((m) => m.id === btn.dataset.decline);
+      if (offerMsg) Notifications.create({ uid: offerMsg.senderId, key: "offerDeclined", params: { name: profile.fullName } });
+    });
   });
   messagesEl.querySelectorAll("[data-cancel]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -199,6 +207,8 @@ async function acceptOffer(messageId) {
     // Best-effort: a denied counter bump shouldn't block the accept action itself.
     await Products.incrementProductDeals(chat.contextId).catch(() => {});
   }
+  const offerMsg = messages.find((m) => m.id === messageId);
+  if (offerMsg) Notifications.create({ uid: offerMsg.senderId, key: "offerAccepted", params: { name: profile.fullName } });
 }
 
 function renderOfferForm() {
@@ -278,6 +288,11 @@ function renderOfferForm() {
       deliveryNotes: deliveryNotes || undefined,
       buyerAccountType: profile.accountType,
     });
+    Notifications.create({
+      uid: otherParticipant().uid,
+      key: "newOffer",
+      params: { name: profile.fullName, product: chat.contextLabel || "" },
+    });
     if (chat.contextType === "product") {
       // Best-effort: a denied counter bump shouldn't block the offer from sending.
       await Products.incrementProductOffers(chat.contextId).catch(() => {});
@@ -304,15 +319,24 @@ async function main() {
     renderMessages();
   });
 
-  document.getElementById("make-offer-btn").addEventListener("click", () => {
+  const makeOfferBtn = document.getElementById("make-offer-btn");
+  const textInput = document.getElementById("chat-text-input");
+  const sendBtn = document.getElementById("chat-send-btn");
+  const chatErrorEl = document.getElementById("chat-error");
+
+  if (chat.locked) {
+    document.getElementById("chat-locked-notice").style.display = "block";
+    makeOfferBtn.disabled = true;
+    textInput.disabled = true;
+    sendBtn.disabled = true;
+  }
+
+  makeOfferBtn.addEventListener("click", () => {
     offerFormOpen = !offerFormOpen;
     counterSource = null;
     renderOfferForm();
   });
 
-  const textInput = document.getElementById("chat-text-input");
-  const sendBtn = document.getElementById("chat-send-btn");
-  const chatErrorEl = document.getElementById("chat-error");
   async function sendText() {
     const text = textInput.value.trim();
     if (!text) return;
@@ -330,7 +354,12 @@ async function main() {
     }
     showMessage(chatErrorEl, "");
     textInput.value = "";
-    await Chat.sendTextMessage(chatId, profile.uid, text);
+    try {
+      await Chat.sendTextMessage(chatId, profile.uid, text);
+      Notifications.create({ uid: otherParticipant().uid, key: "newMessage", params: { name: profile.fullName } });
+    } catch {
+      showMessage(chatErrorEl, t("chats.locked"));
+    }
   }
   sendBtn.addEventListener("click", sendText);
   textInput.addEventListener("keydown", (e) => {

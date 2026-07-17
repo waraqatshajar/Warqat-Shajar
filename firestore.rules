@@ -59,6 +59,25 @@ service cloud.firestore {
         (isAdmin() && resource.data.email != 'sgyiath@gmail.com') || (
         isSignedIn() && request.auth.uid == uid &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(userProtectedFields())
+      ) || (
+        // Client-driven phone-violation enforcement, with no backend/cron to
+        // run it server-side: a user may only ever flip their OWN status in
+        // exactly two narrow directions — self-suspend for <=25h as the 3rd-
+        // strike penalty, or self-reactivate once that window has genuinely
+        // passed (request.time is server-evaluated, so this can't be spoofed
+        // early). A `banned` account can never touch its own status here.
+        isSignedIn() && request.auth.uid == uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'suspendedUntil']) &&
+        (
+          (resource.data.status == 'active' && request.resource.data.status == 'suspended' &&
+           request.resource.data.suspendedUntil is timestamp &&
+           request.resource.data.suspendedUntil > request.time &&
+           request.resource.data.suspendedUntil <= request.time + duration.value(25, 'h'))
+          ||
+          (resource.data.status == 'suspended' && resource.data.suspendedUntil != null &&
+           request.time > resource.data.suspendedUntil &&
+           request.resource.data.status == 'active' && request.resource.data.suspendedUntil == null)
+        )
       );
       allow delete: if isOwner() ||
         (isAdmin() && resource.data.email != 'sgyiath@gmail.com');
@@ -126,9 +145,15 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if isParticipant(get(/databases/$(database)/documents/chats/$(chatId)).data) || isAdmin();
-        allow create: if isActiveUser() &&
+        // Admins bypass participancy entirely so they can post the automated
+        // "conversation stopped" system warning; regular participants are
+        // blocked from posting any NEW message once an admin has locked the chat.
+        allow create: if isAdmin() || (
+          isActiveUser() &&
           request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds &&
-          request.resource.data.senderId == request.auth.uid;
+          request.resource.data.senderId == request.auth.uid &&
+          get(/databases/$(database)/documents/chats/$(chatId)).data.get('locked', false) == false
+        );
         allow update: if isAdmin() || (
           isSignedIn() &&
           request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participantIds &&
@@ -172,7 +197,7 @@ service cloud.firestore {
 
     match /cartItems/{itemId} {
       allow read: if isSignedIn() &&
-        (resource.data.uid == request.auth.uid || isAdmin());
+        (resource == null || resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
       allow update: if isSignedIn() && resource.data.uid == request.auth.uid &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['quantity']);
@@ -191,6 +216,24 @@ service cloud.firestore {
     match /phoneAttempts/{attemptId} {
       allow read, update, delete: if isAdmin();
       allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+    }
+
+    // A single shared room for every admin — never exposed to regular users.
+    match /adminChats/{messageId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if isOwner();
+    }
+
+    // Written by any signed-in user into another user's own inbox (e.g. a
+    // buyer notifying a farmer of a new offer) — informational only, no
+    // control fields, so this "write into someone else's doc" trust level is
+    // the same one already used for bumping products' view/offer/deal counts.
+    match /notifications/{notifId} {
+      allow read, update, delete: if isSignedIn() &&
+        (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+        request.resource.data.keys().hasOnly(['uid', 'key', 'params', 'link', 'read', 'createdAt']) &&
+        request.resource.data.read == false;
     }
 
     match /{document=**} {

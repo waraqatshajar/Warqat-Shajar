@@ -3,6 +3,14 @@
     "name": "Waraqat Shajar",
     "tagline": "Egypt's Agricultural Marketplace"
   },
+  "contactWidget": {
+    "title": "Contact Us",
+    "whatsapp": "WhatsApp",
+    "liveChat": "Live Chat",
+    "call": "Call Us",
+    "email": "Email",
+    "policy": "Platform Policy"
+  },
   "about": {
     "heroBadge": "Our Story",
     "heroHeadline": "No Middleman, A Fair Price, From the Heart of Egypt's Land",
@@ -169,7 +177,7 @@
       "accountTypeLabel": "Account Type",
       "fullNameLabel": "Full Name",
       "phoneLabel": "Phone Number",
-      "phoneHint": "Your phone number will be shown on your public profile for direct contact",
+      "phoneHint": "Your number is never shown to other users — used only for delivery and support",
       "governorateLabel": "Governorate",
       "governoratePlaceholder": "Select governorate",
       "cropsLabel": "Crops you currently have available",
@@ -199,7 +207,8 @@
       "accountTypeRequired": "Please select an account type",
       "unauthorizedDomain": "Google sign-in isn't enabled on this site yet — try again later or use email instead",
       "popupBlocked": "Your browser blocked the sign-in window — allow pop-ups for this site and try again",
-      "popupClosed": "The sign-in window was closed before finishing — please try again"
+      "popupClosed": "The sign-in window was closed before finishing — please try again",
+      "accountExistsDifferentCredential": "This email is already registered with a different sign-in method (e.g. email and password) — sign in that way instead"
     }
   },
   "terms": {
@@ -220,8 +229,8 @@
         "body": "The platform currently does not verify identity, farm ownership, or business registration. Each user is fully responsible for the accuracy of the information they provide, including self-declared product quality ratings, crop descriptions, and quantities."
       },
       {
-        "heading": "4. Phone Number Visibility",
-        "body": "When you create an account, your phone number is displayed publicly on your profile to facilitate direct contact with other users via call or in-platform chat."
+        "heading": "4. Phone Number Privacy",
+        "body": "Your phone number is never shown to other users on the platform. It is used only for delivery, technical support, and contacting you as needed by site administration. All negotiation and communication between users happens exclusively through the in-platform chat system."
       },
       {
         "heading": "5. User Conduct",
@@ -240,7 +249,11 @@
         "body": "These terms may be updated from time to time. Continued use of the platform after any change constitutes acceptance of the updated terms."
       },
       {
-        "heading": "9. Contact",
+        "heading": "9. Phone Number Sharing Is Prohibited",
+        "body": "Writing or sharing any phone number in chats, comments, or any other text field on the platform is strictly prohibited. The system automatically detects, blocks, and logs any attempt to share a phone number. Three attempts by the same user automatically suspends their account for 24 hours, and administration may take further action, up to permanently stopping the conversation or the account, if the violation continues."
+      },
+      {
+        "heading": "10. Contact",
         "body": "For any questions about these terms, please reach out via the \"Contact Us\" page."
       }
     ]
@@ -347,6 +360,7 @@
     "close": "Close Request",
     "noRequests": "No sourcing requests right now",
     "postedBy": "Posted by",
+    "priceRange": "Price range",
     "respond": "Contact About This Request",
     "statusOpen": "Open",
     "statusClosed": "Closed"
@@ -370,6 +384,7 @@
     "offerStatusCancelled": "Cancelled by buyer",
     "cancelOffer": "Cancel Order",
     "confirmCancelOffer": "Are you sure you want to cancel this order?",
+    "systemLockedWarning": "This conversation has been stopped by site administration for violating platform policy (sharing phone numbers). Repeating this violation may lead to your account being suspended.",
     "call": "Call",
     "noMessages": "Start the conversation now",
     "noChats": "No conversations yet",
@@ -471,6 +486,7 @@
     "activeAds": "Active Ads",
     "phoneAttempts": "Phone Sharing Attempts",
     "chats": "Chat Oversight",
+    "teamChat": "Admin Team Chat",
     "welcomeBack": "Welcome back",
     "fullControl": "Full control over every part of the platform",
     "enterAdminMode": "Enter Admin Mode",
@@ -485,19 +501,51 @@
     "passwordUpdated": "Password updated"
   },
   "phoneAttempts": {
-    "hint": "Every attempt to share a phone number in chat or comments is logged here automatically.",
+    "hint": "Every attempt to share a phone number anywhere on the site is logged here automatically — 3 attempts from the same user auto-suspends their account for 24h.",
     "empty": "No attempts logged yet",
     "contextChat": "Attempt in chat",
     "contextComment": "Attempt in a comment",
+    "contextReportDetails": "Attempt in report details",
+    "contextReview": "Attempt in a review",
+    "contextOfferNotes": "Attempt in offer notes",
+    "contextProductDescription": "Attempt in a product description",
+    "contextSourcingNotes": "Attempt in a sourcing request",
     "attemptedBy": "User",
-    "target": "With"
+    "target": "With",
+    "violationCount": "Violations",
+    "accountStatus": "Account status"
   },
   "chats": {
     "title": "All Conversations",
     "hint": "Open any conversation to review it — users are never notified that you opened it.",
     "empty": "No conversations yet",
     "back": "Back to all conversations",
-    "viewOnly": "View only — for internal review"
+    "viewOnly": "View only — for internal review",
+    "lockChat": "Stop Conversation",
+    "lockChatConfirm": "Are you sure you want to stop this conversation? Neither side will be able to send new messages.",
+    "locked": "Conversation stopped"
+  },
+  "teamChat": {
+    "hint": "A private room shared by every admin account — no regular user can ever reach it.",
+    "attach": "Attach image",
+    "sendFailed": "Couldn't send the message, try again"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all as read",
+    "close": "Close"
+  },
+  "notif": {
+    "newMessage": { "title": "New message", "body": "{name} sent you a message" },
+    "newOffer": { "title": "New offer", "body": "{name} sent you an offer on {product}" },
+    "offerAccepted": { "title": "Your offer was accepted", "body": "{name} accepted your offer" },
+    "offerDeclined": { "title": "Your offer was declined", "body": "{name} declined your offer" },
+    "productAdded": { "title": "New product added", "body": "{product} was added to the marketplace" },
+    "sourcingResponse": { "title": "Reply to your sourcing request", "body": "{name} reached out about your sourcing request" },
+    "accountSuspended": { "title": "Your account was temporarily suspended", "body": "Your account was suspended by site administration" },
+    "accountReactivated": { "title": "Your account was reactivated", "body": "You can now use your account normally again" },
+    "newReview": { "title": "New review", "body": "{name} left you a review" }
   },
   "ads": {
     "title": "Ad Management",
@@ -559,6 +607,11 @@
     "englishPlaceholder": "English",
     "saveChanges": "Save",
     "uploadFile": "Upload from device",
+    "contactTitle": "Contact Info",
+    "contactPhoneLabel": "Phone number (shown directly in the footer)",
+    "contactWhatsappLabel": "WhatsApp number (shown directly in the footer)",
+    "contactEmailLabel": "Contact email address",
+    "contactPolicyLabel": "Platform policy link (leave blank to use the default terms page)",
     "socialTitle": "Social Media",
     "socialAdd": "Add",
     "noSocialLinks": "No social links yet",

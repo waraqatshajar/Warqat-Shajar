@@ -104,6 +104,9 @@ const ICON_PATHS = {
   eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
   "shopping-cart": '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
+  "book-open": '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2Z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7Z"/>',
 };
 
 export function icon(name, extraClass = "") {
@@ -138,6 +141,53 @@ export function renderStarButtons(value, max = 5) {
     html += `<button type="button" data-star="${i}">${STAR_SVG.replace("<svg ", `<svg class="${i <= value ? "is-filled" : ""}" `)}</button>`;
   }
   return html;
+}
+
+// ---------------------------------------------------------------------------
+// Toasts — real-time pop-ups for notifications that arrive while the tab is
+// open (the bell dropdown in layout.js covers the persistent/unread list).
+// ---------------------------------------------------------------------------
+function getToastContainer() {
+  let el = document.getElementById("toast-container");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast-container";
+    el.className = "toast-container";
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+export function interpolate(str, params) {
+  if (!params) return str;
+  return Object.entries(params).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, v), str);
+}
+
+export function showToast({ key, params, link }) {
+  const container = getToastContainer();
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `
+    <img src="images/logo-icon.png" class="toast-badge" alt="">
+    <div class="toast-body">
+      <div class="toast-title"><span class="toast-dot"></span>${t(`notif.${key}.title`)}</div>
+      <div class="toast-subtitle">${interpolate(t(`notif.${key}.body`), params)}</div>
+    </div>
+    <button type="button" class="toast-close" aria-label="${t("notifications.close")}">${icon("x")}</button>
+  `;
+  if (link) {
+    toast.classList.add("is-clickable");
+    toast.addEventListener("click", (e) => {
+      if (!e.target.closest(".toast-close")) location.href = link;
+    });
+  }
+  toast.querySelector(".toast-close").addEventListener("click", (e) => {
+    e.stopPropagation();
+    toast.remove();
+  });
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("is-visible"));
+  setTimeout(() => toast.remove(), 5000);
 }
 
 // ---------------------------------------------------------------------------
