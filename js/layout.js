@@ -175,7 +175,16 @@ function renderNotifBell() {
 
   const items = notifState.items;
 
-  if (notifSeenIds === null) {
+  // initLayout() calls this synchronously, before the Firestore listener in
+  // state.js has delivered its first real snapshot — notifState.items is
+  // still `[]` at that point (loading is still true). Waiting for loading
+  // to actually go false before capturing the "already seen" baseline is
+  // what stops every already-read notification from re-toasting itself on
+  // every single page load (it was previously baselining against that
+  // premature empty array instead of the real one).
+  if (notifState.loading) {
+    // do nothing yet — wait for the real snapshot
+  } else if (notifSeenIds === null) {
     notifSeenIds = new Set(items.map((n) => n.id));
   } else {
     items.forEach((n) => {
