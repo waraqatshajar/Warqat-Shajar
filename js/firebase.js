@@ -536,12 +536,18 @@ function cartItemId(uid, productId) {
 
 export const Cart = {
   async addToCart(uid, productId, quantity) {
-    await setDoc(doc(cartItemsCol, cartItemId(uid, productId)), {
-      uid,
-      productId,
-      quantity,
-      addedAt: serverTimestamp(),
-    });
+    const ref = doc(cartItemsCol, cartItemId(uid, productId));
+    const existing = await getDoc(ref);
+    if (existing.exists()) {
+      await updateDoc(ref, { quantity });
+    } else {
+      await setDoc(ref, {
+        uid,
+        productId,
+        quantity,
+        addedAt: serverTimestamp(),
+      });
+    }
   },
 
   async updateCartQuantity(uid, productId, quantity) {
