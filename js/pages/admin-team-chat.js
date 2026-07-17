@@ -1,9 +1,9 @@
 import { initLayout } from "../layout.js";
 import { guardAdmin } from "../admin-shell.js";
 import { t, getLocale, onLocaleChange } from "../i18n.js";
-import { AdminChat, Storage } from "../firebase.js";
+import { AdminChat } from "../firebase.js";
 import { authState } from "../state.js";
-import { btnClass, icon, showMessage } from "../ui.js";
+import { btnClass, showMessage } from "../ui.js";
 
 let contentEl;
 let messages = [];
@@ -21,8 +21,6 @@ function render() {
       <div class="chat-messages" id="team-chat-messages"></div>
       <p id="team-chat-error" class="error-text" style="display:none;padding:0 0.75rem"></p>
       <div class="chat-composer">
-        <button type="button" class="${btnClass("ghost", "icon-sm")}" id="team-chat-attach" aria-label="${t("teamChat.attach")}">${icon("image")}</button>
-        <input type="file" id="team-chat-file" accept="image/*" style="display:none">
         <input class="input" id="team-chat-input" placeholder="${t("chat.typeMessage")}">
         <button type="button" class="btn btn-default" id="team-chat-send">${t("chat.send")}</button>
       </div>
@@ -32,8 +30,6 @@ function render() {
 
   const input = contentEl.querySelector("#team-chat-input");
   const sendBtn = contentEl.querySelector("#team-chat-send");
-  const attachBtn = contentEl.querySelector("#team-chat-attach");
-  const fileInput = contentEl.querySelector("#team-chat-file");
   const errorEl = contentEl.querySelector("#team-chat-error");
 
   async function sendText() {
@@ -49,26 +45,6 @@ function render() {
   sendBtn.addEventListener("click", sendText);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendText();
-  });
-
-  attachBtn.addEventListener("click", () => fileInput.click());
-  fileInput.addEventListener("change", async () => {
-    const file = fileInput.files[0];
-    fileInput.value = "";
-    if (!file) return;
-    try {
-      const path = `adminChatFiles/${Date.now()}_${file.name}`;
-      const url = await Storage.uploadFile(path, file);
-      await AdminChat.sendMessage({
-        senderId: authState.user.uid,
-        senderName: authState.profile.fullName,
-        fileUrl: url,
-        fileName: file.name,
-        fileType: file.type,
-      });
-    } catch {
-      showMessage(errorEl, t("teamChat.sendFailed"));
-    }
   });
 }
 

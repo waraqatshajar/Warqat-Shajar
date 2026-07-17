@@ -6,7 +6,7 @@ import { CATEGORIES, CATEGORY_IMAGES } from "../constants.js";
 import { btnClass, badgeClass, icon, renderImageInput, showMessage } from "../ui.js";
 
 let contentEl;
-let siteImages = { heroImages: [], categoryImages: {}, logoUrl: null };
+let siteImages = { heroImages: [], categoryImages: {}, logoUrl: null, widgetIconUrl: null };
 let siteContent = { ar: {}, en: {} };
 let siteTheme = { primaryColor: null };
 let socialLinks = { links: [] };
@@ -34,6 +34,7 @@ const SOCIAL_PLATFORMS = ["facebook", "instagram", "x", "whatsapp", "tiktok", "y
 
 let heroInput;
 let logoInput;
+let widgetIconInput;
 let categoryInputs = {};
 
 function render() {
@@ -47,6 +48,16 @@ function render() {
       </div>
       <div id="logo-input-mount"></div>
       <button type="button" class="${btnClass("default", "sm")}" id="save-logo-btn" style="margin-top:0.75rem">${t("branding.saveChanges", "Save")}</button>
+    </div>
+
+    <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.widgetIconTitle")}</h2>
+    <p class="text-muted" style="font-size:0.8rem">${t("branding.widgetIconHint")}</p>
+    <div class="card" style="padding:1.5rem;margin-top:0.75rem">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem">
+        <img src="${siteImages.widgetIconUrl || siteImages.logoUrl || "images/logo-icon.png"}" alt="" style="width:3rem;height:3rem;object-fit:contain">
+      </div>
+      <div id="widget-icon-input-mount"></div>
+      <button type="button" class="${btnClass("default", "sm")}" id="save-widget-icon-btn" style="margin-top:0.75rem">${t("branding.saveChanges", "Save")}</button>
     </div>
 
     <h2 class="heading" style="font-size:1.1rem;margin-top:2rem">${t("branding.colorTitle", "Brand Color")}</h2>
@@ -211,6 +222,17 @@ function render() {
   });
   contentEl.querySelector("#save-logo-btn").addEventListener("click", async () => {
     await SiteSettings.updateLogoUrl(logoInput.getValue());
+  });
+
+  // Floating contact widget + toast notification icon (falls back to the
+  // main logo, then the static default, if never set — see layout.js/ui.js)
+  widgetIconInput = renderImageInput(contentEl.querySelector("#widget-icon-input-mount"), {
+    value: siteImages.widgetIconUrl || "",
+    uploadPathPrefix: "site/",
+    accept: "image/*",
+  });
+  contentEl.querySelector("#save-widget-icon-btn").addEventListener("click", async () => {
+    await SiteSettings.updateWidgetIconUrl(widgetIconInput.getValue());
   });
 
   // Brand color
