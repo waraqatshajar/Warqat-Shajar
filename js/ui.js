@@ -166,23 +166,20 @@ export function interpolate(str, params) {
 export function showToast({ key, params, link }) {
   const container = getToastContainer();
   const toast = document.createElement("div");
-  toast.className = "toast";
+  toast.className = "toast is-clickable";
   toast.innerHTML = `
+    <div class="toast-leaf-accent"></div>
     <img src="images/logo-icon.png" class="toast-badge" alt="">
     <div class="toast-body">
-      <div class="toast-title"><span class="toast-dot"></span>${t(`notif.${key}.title`)}</div>
+      <div class="toast-title">${t(`notif.${key}.title`)}<span class="toast-dot"></span></div>
       <div class="toast-subtitle">${interpolate(t(`notif.${key}.body`), params)}</div>
     </div>
-    <button type="button" class="toast-close" aria-label="${t("notifications.close")}">${icon("x")}</button>
   `;
-  if (link) {
-    toast.classList.add("is-clickable");
-    toast.addEventListener("click", (e) => {
-      if (!e.target.closest(".toast-close")) location.href = link;
-    });
-  }
-  toast.querySelector(".toast-close").addEventListener("click", (e) => {
-    e.stopPropagation();
+  // No separate close button — the shape's tapered corner leaves no safe spot
+  // for one, so the whole toast doubles as its own dismiss target (and
+  // navigates too, if it has a link) instead.
+  toast.addEventListener("click", () => {
+    if (link) location.href = link;
     toast.remove();
   });
   container.appendChild(toast);

@@ -316,8 +316,8 @@ function renderContactWidgetPanel() {
     <div class="contact-widget-header">${t("contactWidget.title")}</div>
     ${items
       .map(
-        (it) => `
-      <a class="contact-widget-item" href="${it.href}" ${it.external ? 'target="_blank" rel="noopener noreferrer"' : ""}>
+        (it, i) => `
+      <a class="contact-widget-item" style="--item-delay:${i * 45}ms" href="${it.href}" ${it.external ? 'target="_blank" rel="noopener noreferrer"' : ""}>
         <span class="contact-widget-item-icon">${icon(it.icon)}</span>
         <span>${it.label}</span>
         ${icon("chevron-down", "contact-widget-chevron")}
@@ -340,7 +340,15 @@ function renderContactWidget() {
       </button>
     `;
     document.body.appendChild(wrapper);
-    wireDropdown(wrapper.querySelector("#contact-widget-trigger"), wrapper.querySelector("#contact-widget-panel"));
+    const trigger = wrapper.querySelector("#contact-widget-trigger");
+    const panelEl = wrapper.querySelector("#contact-widget-panel");
+    wireDropdown(trigger, panelEl);
+    // wireDropdown only toggles the panel's own class (and can close it via
+    // an outside click, not just the trigger) — mirror whatever state it
+    // lands in onto the FAB too, so its icon rotates into a "close" affordance.
+    new MutationObserver(() => {
+      trigger.classList.toggle("is-open", panelEl.classList.contains("is-open"));
+    }).observe(panelEl, { attributes: true, attributeFilter: ["class"] });
     SiteSettings.subscribeSocialLinks((data) => {
       contactWidgetData = data;
       renderContactWidgetPanel();
