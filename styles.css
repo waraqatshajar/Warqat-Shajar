@@ -2812,7 +2812,13 @@ main {
 .tour-ring {
   position: absolute;
   border-radius: var(--radius-lg);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 70%, transparent);
+  /* Second shadow layer dims the whole viewport via a huge spread; box-shadow
+     never renders under its own element, so the target rect stays lit up
+     while everything else (including any heading sitting right behind the
+     tour card) reads clearly as backgrounded, not cut off. */
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--primary) 70%, transparent),
+    0 0 0 9999px rgba(0, 0, 0, 0.55);
   transition: all 0.3s ease;
 }
 
@@ -3340,6 +3346,9 @@ main {
   width: 17rem;
   max-width: calc(100vw - 2.5rem);
   padding: 0.3rem 0;
+  background: var(--popover);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   opacity: 0;
   visibility: hidden;
   transform: translateY(0.85rem) scale(0.92);
@@ -3360,7 +3369,7 @@ main {
   font-weight: 700;
   font-size: 0.9rem;
   padding: 0.4rem 0.9rem 0.6rem;
-  color: var(--foreground);
+  color: var(--popover-foreground);
 }
 
 .contact-widget-item {

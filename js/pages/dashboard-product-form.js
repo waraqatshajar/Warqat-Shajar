@@ -62,10 +62,9 @@ export function renderProductForm(mountEl, profile, existingProduct) {
       </div>
       <div class="field">
         <label class="label" data-i18n="products.photosLabel">Photos (up to 3)</label>
-        <p class="text-muted" style="font-size:0.75rem" data-i18n="products.photosHint">Paste a link to an already-uploaded photo</p>
+        <p class="text-muted" style="font-size:0.75rem" data-i18n="products.photosHint">Upload a photo directly from your device</p>
         <div id="pf-photo-list" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem"></div>
         <div id="pf-photo-input-mount" style="margin-top:0.5rem"></div>
-        <button type="button" class="btn btn-outline" id="pf-add-photo" style="margin-top:0.5rem;align-self:flex-start" data-i18n="products.addUrl">Add Link</button>
       </div>
       <div class="field">
         <label class="label" data-i18n="products.videoLabel">Video Link (optional)</label>
@@ -146,22 +145,20 @@ export function renderProductForm(mountEl, profile, existingProduct) {
   }
   renderPhotos();
 
-  const photoInput = renderImageInput(mountEl.querySelector("#pf-photo-input-mount"), {
+  renderImageInput(mountEl.querySelector("#pf-photo-input-mount"), {
     uploadPathPrefix: `products/${profile.uid}/`,
     accept: "image/*",
+    hideUrlField: true,
+    onChange: (url) => {
+      if (!url || photos.length >= 3) return;
+      photos.push(url);
+      renderPhotos();
+    },
   });
   const videoInput = renderImageInput(mountEl.querySelector("#pf-video-input-mount"), {
     value: existingProduct?.videoUrl ?? "",
     uploadPathPrefix: `products/${profile.uid}/`,
     accept: "video/*",
-  });
-
-  mountEl.querySelector("#pf-add-photo").addEventListener("click", () => {
-    const url = photoInput.getValue();
-    if (!url || photos.length >= 3) return;
-    photos.push(url);
-    photoInput.setValue("");
-    renderPhotos();
   });
 
   const form = mountEl.querySelector("#product-form");
