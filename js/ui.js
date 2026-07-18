@@ -314,10 +314,10 @@ export async function renderAdSlot(containerEl, placement, AdsApi, width = 500, 
 // ---------------------------------------------------------------------------
 // Image input — paste a URL, or upload a file from device (Firebase Storage)
 // ---------------------------------------------------------------------------
-export function renderImageInput(mountEl, { value = "", uploadPathPrefix, accept = "image/*", onChange }) {
+export function renderImageInput(mountEl, { value = "", uploadPathPrefix, accept = "image/*", onChange, hideUrlField = false }) {
   mountEl.innerHTML = `
     <div class="image-input">
-      <input class="input force-ltr image-input-url" dir="ltr" placeholder="https://..." value="${value}">
+      <input class="input force-ltr image-input-url" dir="ltr" placeholder="https://..." value="${value}" style="${hideUrlField ? "display:none" : ""}">
       <label class="btn btn-outline btn-sm image-input-upload-btn">
         ${icon("image")} <span>${t("branding.uploadFile", "Upload from device")}</span>
         <input type="file" accept="${accept}" class="image-input-file" style="display:none">
