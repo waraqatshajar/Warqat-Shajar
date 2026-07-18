@@ -838,6 +838,7 @@ main {
   background: #10150f;
   color: #eef2ec;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .site-footer::before {

@@ -18,6 +18,18 @@ const SOCIAL_ICON_KEY = {
 };
 
 const SPLASH_KEY = "wsj-splash-shown";
+
+// A signed-in Firebase Auth user without a users/{uid} Firestore doc (e.g. a
+// Google sign-in interrupted before complete-profile.html was submitted)
+// would otherwise see a silently blank page on every other route.
+const PROFILE_GUARD_EXEMPT_PAGES = ["complete-profile.html", "login.html", "register.html"];
+
+function guardProfileCompletion() {
+  if (authState.loading || !authState.user || authState.profile) return;
+  const page = location.pathname.split("/").pop() || "index.html";
+  if (PROFILE_GUARD_EXEMPT_PAGES.includes(page)) return;
+  location.replace("complete-profile.html");
+}
 const VISIBLE_MS = 1100;
 const FADE_MS = 400;
 
@@ -268,6 +280,7 @@ function renderFooterSocial() {
   const mount = document.getElementById("footer-social");
   const phoneMount = document.getElementById("footer-phone");
   const whatsappMount = document.getElementById("footer-whatsapp");
+  const privacyLink = document.getElementById("footer-privacy-link");
   if (!mount) return;
   SiteSettings.subscribeSocialLinks((data) => {
     const links = data.links || [];
@@ -291,6 +304,9 @@ function renderFooterSocial() {
       } else {
         whatsappMount.style.display = "none";
       }
+    }
+    if (privacyLink && data.policyLink) {
+      privacyLink.href = data.policyLink;
     }
   });
 }
@@ -388,11 +404,13 @@ export async function initLayout() {
   applyBrandColor();
   renderFooterSocial();
   renderContactWidget();
+  guardProfileCompletion();
   subscribe(() => {
     renderHeaderAuthArea();
     renderWishlistBadge();
     renderCartBadge();
     renderNotifBell();
+    guardProfileCompletion();
   });
   onLocaleChange(() => {
     renderHeaderAuthArea();

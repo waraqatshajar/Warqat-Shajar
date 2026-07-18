@@ -18,11 +18,20 @@ let heroImages = ["images/hero-farmer.jpg", "images/produce-flatlay.jpg"];
 let heroTimer = null;
 let activeSlide = 0;
 
+// Only the active slide gets its (often large, admin-hosted) background image
+// loaded eagerly; the rest stay unset until they're about to be shown, so a
+// page load doesn't pay for every slide's image at once.
+function preloadSlide(index) {
+  const src = heroImages[index];
+  if (!src) return;
+  new Image().src = src;
+}
+
 function renderHero() {
   const slidesEl = document.getElementById("hero-slides");
   const dotsEl = document.getElementById("hero-dots");
   slidesEl.innerHTML = heroImages
-    .map((src, i) => `<div class="hero-slide ${i === activeSlide ? "is-active" : ""}" style="background-image:url('${src}')"></div>`)
+    .map((src, i) => `<div class="hero-slide ${i === activeSlide ? "is-active" : ""}" style="${i === activeSlide ? `background-image:url('${src}')` : ""}"></div>`)
     .join("");
   dotsEl.innerHTML =
     heroImages.length > 1
@@ -31,6 +40,7 @@ function renderHero() {
   dotsEl.querySelectorAll("[data-slide]").forEach((dot) => {
     dot.addEventListener("click", () => goToSlide(Number(dot.dataset.slide)));
   });
+  preloadSlide((activeSlide + 1) % heroImages.length);
 }
 
 function goToSlide(index) {

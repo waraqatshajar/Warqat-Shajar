@@ -38,13 +38,6 @@ import {
   getCountFromServer,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import {
-  getStorage,
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDxum9DYcroSdHuXWoeCZvfJ1N5tH9WN0g",
   authDomain: "waraqat-shajar.firebaseapp.com",
@@ -60,16 +53,35 @@ export const auth = getAuth(firebaseApp);
 // so optional object fields are often built as `value || undefined` — plain
 // getFirestore() throws "invalid-argument" the moment such a field is written.
 export const db = initializeFirestore(firebaseApp, { ignoreUndefinedProperties: true });
-export const storage = getStorage(firebaseApp);
 
 // ===========================================================================
-// Storage (device file uploads — paths match storage.rules exactly)
+// Storage (device file uploads)
 // ===========================================================================
+// Firebase Storage needs the Blaze billing plan to function at all, so image
+// uploads go to Cloudinary's free tier instead — direct browser upload via an
+// unsigned preset, no server/API secret involved. `path` (e.g. "ads/123-x.jpg")
+// becomes the Cloudinary folder, matching the old Storage path layout.
+const CLOUDINARY_CLOUD_NAME = "qyz52hze";
+const CLOUDINARY_UPLOAD_PRESET = "waraqat_shajar";
+
 export const Storage = {
   async uploadFile(path, file) {
-    const fileRef = storageRef(storage, path);
-    await uploadBytes(fileRef, file);
-    return getDownloadURL(fileRef);
+    const folder = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : undefined;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    if (folder) formData.append("folder", folder);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.error?.message || "Upload failed");
+    }
+    const data = await res.json();
+    return data.secure_url;
   },
 };
 
