@@ -37,6 +37,7 @@ import {
   serverTimestamp,
   getCountFromServer,
   Timestamp,
+  writeBatch,
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyDxum9DYcroSdHuXWoeCZvfJ1N5tH9WN0g",
@@ -501,6 +502,7 @@ export const Chat = {
               messageId: m.id,
               productId: chat.contextId,
               productLabel: chat.contextLabel,
+              farmerUid,
               farmerName: chat.participantNames[farmerUid],
               createdAt: data.createdAt ?? null,
             };
@@ -1091,5 +1093,24 @@ export const Notifications = {
 
   async markAllRead(notifs) {
     await Promise.all(notifs.filter((n) => !n.read).map((n) => updateDoc(doc(db, "notifications", n.id), { read: true })));
+  },
+
+  // Fans one notification doc out to every user's inbox. Batched in groups
+  // of 500 (Firestore's per-batch write limit).
+  async broadcastToAll(uids, { key, params, link }) {
+    for (let i = 0; i < uids.length; i += 500) {
+      const batch = writeBatch(db);
+      for (const uid of uids.slice(i, i + 500)) {
+        batch.set(doc(notificationsCol), {
+          uid,
+          key,
+          params: params ?? {},
+          link: link ?? null,
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      }
+      await batch.commit();
+    }
   },
 };

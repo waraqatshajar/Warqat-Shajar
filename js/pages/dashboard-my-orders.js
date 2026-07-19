@@ -4,7 +4,7 @@
 import { initLayout } from "../layout.js";
 import { guardDashboard } from "../dashboard-shell.js";
 import { t, onLocaleChange } from "../i18n.js";
-import { Chat } from "../firebase.js";
+import { Chat, Notifications } from "../firebase.js";
 import { badgeClass, btnClass } from "../ui.js";
 
 const listEl = document.getElementById("my-orders-list");
@@ -57,7 +57,9 @@ function render() {
     btn.addEventListener("click", async () => {
       if (!confirm(t("chat.confirmCancelOffer"))) return;
       const [chatId, messageId] = btn.dataset.cancel.split(":");
+      const order = orders.find((o) => o.chatId === chatId && o.messageId === messageId);
       await Chat.respondToOffer(chatId, messageId, "cancelled");
+      if (order) Notifications.create({ uid: order.farmerUid, key: "offerCancelled", params: { name: profileRef.fullName } });
       await reload();
     });
   });

@@ -185,7 +185,9 @@ function renderMessages() {
   });
   messagesEl.querySelectorAll("[data-cancel]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      if (confirm(t("chat.confirmCancelOffer"))) Chat.respondToOffer(chatId, btn.dataset.cancel, "cancelled");
+      if (!confirm(t("chat.confirmCancelOffer"))) return;
+      Chat.respondToOffer(chatId, btn.dataset.cancel, "cancelled");
+      Notifications.create({ uid: otherParticipant().uid, key: "offerCancelled", params: { name: profile.fullName } });
     });
   });
   messagesEl.querySelectorAll("[data-counter]").forEach((btn) => {
