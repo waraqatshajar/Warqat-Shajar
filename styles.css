@@ -3342,6 +3342,16 @@ main {
 }
 
 .contact-widget-panel {
+  /* Absolutely positioned (not a normal flex child) so its box -- even while
+     only visibility:hidden, which keeps layout space reserved -- never
+     inflates the fixed-position .contact-widget container. Without this the
+     closed panel's own height was silently ballooning that container to
+     cover a large chunk of the page, intercepting taps meant for whatever
+     content sat underneath it (worst on mobile, where it's a much bigger
+     share of the viewport). */
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 100%;
   margin-bottom: 0.9rem;
   width: 17rem;
   max-width: calc(100vw - 2.5rem);
