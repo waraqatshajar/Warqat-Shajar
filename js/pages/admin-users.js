@@ -52,6 +52,7 @@ function render() {
                       `
                         : `<button type="button" class="${btnClass("outline", "sm")}" data-reactivate="${u.uid}">${t("admin.reactivate")}</button>`
                     }
+                    <button type="button" class="${btnClass("outline", "icon-sm")}" data-notify="${u.uid}" aria-label="${t("broadcast.sendToUser")}">${icon("bell")}</button>
                     <button type="button" class="${btnClass("destructive", "icon-sm")}" data-delete="${u.uid}" aria-label="${t("admin.deleteUser")}">${icon("trash")}</button>
                   </div>
                 </div>
@@ -88,6 +89,14 @@ function render() {
       await Admin.setUserStatus(btn.dataset.reactivate, "active");
       Notifications.create({ uid: btn.dataset.reactivate, key: "accountReactivated" });
       await reload();
+    });
+  });
+  contentEl.querySelectorAll("[data-notify]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const text = prompt(t("broadcast.sendToUserPrompt"));
+      if (!text?.trim()) return;
+      Notifications.create({ uid: btn.dataset.notify, key: "adminMessage", params: { text: text.trim() } });
+      alert(t("broadcast.sentToUser"));
     });
   });
   contentEl.querySelectorAll("[data-delete]").forEach((btn) => {

@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: "admin-phone-attempts.html", key: "phoneAttempts", icon: "alert-triangle" },
   { href: "admin-chats.html", key: "chats", icon: "eye" },
   { href: "admin-team-chat.html", key: "teamChat", icon: "headset" },
+  { href: "admin-broadcast.html", key: "broadcast", icon: "bell" },
   { href: "admin-ads.html", key: "ads", icon: "megaphone" },
   { href: "admin-branding.html", key: "branding", icon: "image" },
 ];

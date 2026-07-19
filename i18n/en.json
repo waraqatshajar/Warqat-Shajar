@@ -486,6 +486,7 @@
     "phoneAttempts": "Phone Sharing Attempts",
     "chats": "Chat Oversight",
     "teamChat": "Admin Team Chat",
+    "broadcast": "Send Notification",
     "welcomeBack": "Welcome back",
     "fullControl": "Full control over every part of the platform",
     "enterAdminMode": "Enter Admin Mode",
@@ -529,6 +530,18 @@
     "attach": "Attach image",
     "sendFailed": "Couldn't send the message, try again"
   },
+  "broadcast": {
+    "hint": "Send a notification that reaches every registered user on the platform instantly.",
+    "placeholder": "Write the notification text...",
+    "sendAll": "Send to Everyone",
+    "required": "Write the notification text first",
+    "confirm": "Are you sure you want to send this notification to every user?",
+    "sent": "Sent successfully to {count} users",
+    "failed": "Couldn't send the notification, try again",
+    "sendToUser": "Send Notification",
+    "sendToUserPrompt": "Write the notification text to send to this user:",
+    "sentToUser": "Notification sent"
+  },
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet",
@@ -544,7 +557,9 @@
     "sourcingResponse": { "title": "Reply to your sourcing request", "body": "{name} reached out about your sourcing request" },
     "accountSuspended": { "title": "Your account was temporarily suspended", "body": "Your account was suspended by site administration" },
     "accountReactivated": { "title": "Your account was reactivated", "body": "You can now use your account normally again" },
-    "newReview": { "title": "New review", "body": "{name} left you a review" }
+    "newReview": { "title": "New review", "body": "{name} left you a review" },
+    "offerCancelled": { "title": "Offer cancelled", "body": "{name} cancelled the offer" },
+    "adminMessage": { "title": "Message from Waraqat Shajar", "body": "{text}" }
   },
   "ads": {
     "title": "Ad Management",
