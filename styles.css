@@ -3388,9 +3388,10 @@ main {
   align-items: center;
   gap: 0.6rem;
   padding: 0.6rem 1.1rem 0.6rem 0.7rem;
-  /* Two opposite corners fully rounded, two left sharp — the classic
-     CSS "leaf" silhouette, echoing the brand's leaf-drop logo shape. */
-  border-radius: 999px 0.35rem 999px 0.35rem;
+  /* Rounded at the icon end, tapered to a point at the other -- a single-
+     direction taper (an actual leaf-blade silhouette) rather than opposite
+     rounded corners, matching the brand's leaf reference art. */
+  border-radius: 0.35rem 999px 999px 0.35rem;
   font-size: 0.875rem;
   font-weight: 700;
   color: #fff;
@@ -3403,11 +3404,22 @@ main {
   transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s ease;
 }
 
+@keyframes contact-widget-item-sway {
+  0%, 100% { rotate: 0deg; translate: 0 0; }
+  50% { rotate: -1.4deg; translate: 0 -2px; }
+}
+
 .contact-widget-panel.is-open .contact-widget-item {
   opacity: 1;
   transform: translateX(0);
   transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) var(--item-delay, 0s),
     box-shadow 0.18s ease, opacity 0.28s ease var(--item-delay, 0s);
+  /* Gentle idle sway once settled, like a leaf stirring in a breeze --
+     started only after the entrance transition has had time to finish, and
+     driven by rotate/translate (not transform) so it never fights the
+     transition above for the same property. */
+  animation: contact-widget-item-sway 3.4s ease-in-out calc(var(--item-delay, 0s) + 0.5s) infinite;
+  transform-origin: right center;
 }
 
 .contact-widget-item::before {
