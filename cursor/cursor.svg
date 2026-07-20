@@ -26,51 +26,16 @@
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- ============================================================
-         Filters: combined outer glow + inner shadow for the main
-         cursor only (expensive filter, applied to a single element).
-         Trail leaves / particles use plain CSS drop-shadows instead
-         to keep dozens of on-screen instances cheap.
-         ============================================================ -->
-    <filter id="leafShadowGlow" x="-90%" y="-90%" width="280%" height="280%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="3.2" result="glowBlur"/>
-      <feFlood flood-color="#3DDC63" flood-opacity="0.55" result="glowColor"/>
-      <feComposite in="glowColor" in2="glowBlur" operator="in" result="glow"/>
-
-      <feComponentTransfer in="SourceAlpha" result="invAlpha">
-        <feFuncA type="table" tableValues="1 0"/>
-      </feComponentTransfer>
-      <feGaussianBlur in="invAlpha" stdDeviation="2" result="innerBlur"/>
-      <feOffset in="innerBlur" dx="0" dy="1.2" result="innerOffset"/>
-      <feFlood flood-color="#04350f" flood-opacity="0.5" result="innerColor"/>
-      <feComposite in="innerColor" in2="innerOffset" operator="in" result="innerShadow"/>
-      <feComposite in="innerShadow" in2="SourceGraphic" operator="over" result="withInner"/>
-
-      <feMerge>
-        <feMergeNode in="glow"/>
-        <feMergeNode in="withInner"/>
-      </feMerge>
-    </filter>
-
-    <filter id="leafShadowGlowStrong" x="-120%" y="-120%" width="340%" height="340%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="5" result="glowBlur"/>
-      <feFlood flood-color="#5CF07D" flood-opacity="0.75" result="glowColor"/>
-      <feComposite in="glowColor" in2="glowBlur" operator="in" result="glow"/>
-
-      <feComponentTransfer in="SourceAlpha" result="invAlpha">
-        <feFuncA type="table" tableValues="1 0"/>
-      </feComponentTransfer>
-      <feGaussianBlur in="invAlpha" stdDeviation="2" result="innerBlur"/>
-      <feOffset in="innerBlur" dx="0" dy="1.2" result="innerOffset"/>
-      <feFlood flood-color="#04350f" flood-opacity="0.5" result="innerColor"/>
-      <feComposite in="innerColor" in2="innerOffset" operator="in" result="innerShadow"/>
-      <feComposite in="innerShadow" in2="SourceGraphic" operator="over" result="withInner"/>
-
-      <feMerge>
-        <feMergeNode in="glow"/>
-        <feMergeNode in="withInner"/>
-      </feMerge>
-    </filter>
+    <!-- Outer glow is applied via CSS drop-shadow() instead of a custom
+         SVG filter chain here. An earlier version combined outer-glow +
+         inner-shadow into one hand-built filter (feComponentTransfer /
+         feComposite chaining) -- that primitive combo isn't consistently
+         supported and rendered as a solid black box in some browsers
+         instead of failing gracefully. drop-shadow() gives the same
+         soft-glow look with near-universal support and no custom
+         filter graph to go wrong. The "inner shadow" look is instead
+         baked into each symbol as a static inset stroke (see leaf-outline
+         below), which always renders identically everywhere. -->
 
     <!-- Reusable leaflet primitive -- every glyph in the set is composed
          from copies of this one shape so the whole icon family reads as
@@ -81,7 +46,7 @@
          Main cursor body -- organic arrow/leaf hybrid
          ============================================================ -->
     <symbol id="leaf-default" viewBox="0 0 40 40">
-      <path class="leaf-outline" fill="url(#leafGrad)"
+      <path class="leaf-outline" fill="url(#leafGrad)" stroke="#04350f" stroke-opacity="0.28" stroke-width="0.8"
         d="M9,5 C7,4 5,5 5,7 L5,33 C5,36 8,37.5 10.3,35.7 L15.5,31.7 L19,39
            C19.9,41 22.3,41.6 23.9,40.2 C25.3,39 25.6,36.9 24.7,35.3 L21,28
            L29,26.6 C31.7,26.1 32.3,22.5 30,21 L11,5.8 C10.4,5.3 9.7,5 9,5 Z"/>
