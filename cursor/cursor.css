@@ -46,7 +46,13 @@ html.leaf-cursor-active {
   height: var(--leaf-cursor-size);
   transform: translate3d(-100px, -100px, 0);
   will-change: transform;
-  filter: url(#leafShadowGlow);
+  /* Plain drop-shadow instead of a custom SVG <filter>: a hand-built
+     filter graph (feComponentTransfer/feComposite chaining) rendered as
+     a solid black box in some browsers instead of a soft glow. Stacked
+     drop-shadows give the same layered glow with near-universal support. */
+  filter: drop-shadow(0 1px 1px rgba(4, 53, 15, 0.35)) drop-shadow(0 0 6px rgba(61, 220, 99, 0.55))
+    drop-shadow(0 0 14px rgba(61, 220, 99, 0.28));
+  transition: filter 0.2s ease;
   overflow: visible;
 }
 
@@ -60,7 +66,8 @@ html.leaf-cursor-active {
 
 /* Hover over links / buttons: enlarge + brighten, "the leaf opens" */
 .leaf-cursor-layer[data-state="link"] .leaf-cursor-main {
-  filter: url(#leafShadowGlowStrong);
+  filter: drop-shadow(0 1px 1px rgba(4, 53, 15, 0.35)) drop-shadow(0 0 9px rgba(92, 240, 125, 0.75))
+    drop-shadow(0 0 20px rgba(92, 240, 125, 0.4));
 }
 .leaf-cursor-layer[data-state="link"] .leaf-cursor-use {
   transform: scale(1.22);
