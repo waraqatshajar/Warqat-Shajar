@@ -418,8 +418,14 @@
   // Boot
   // -------------------------------------------------------------------
   function start(svgText) {
+    // NOT display:none: <use> shape references tolerate a hidden ancestor
+    // fine, but gradient/paint-server resolution (fill="url(#leafGrad)")
+    // does not in some browsers -- it silently falls back to solid black
+    // instead of the gradient. The sprite's own root <svg> already hides
+    // itself safely via width:0;height:0;overflow:hidden (see cursor.svg),
+    // which every element inside stays visually invisible through without
+    // breaking gradient lookups.
     var spriteHost = document.createElement("div");
-    spriteHost.style.display = "none";
     spriteHost.innerHTML = svgText;
     document.body.appendChild(spriteHost);
 
